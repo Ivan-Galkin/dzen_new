@@ -1,0 +1,89 @@
+ПРОМТЫ ДЛЯ ИЗОБРАЖЕНИЙ — Статья 01 «Чем пахла Клеопатра»
+
+Промты на английском: модели генерации изображений стабильнее его понимают.
+Общий стилевой хвост уже вшит в каждый промт, отдельно добавлять ничего не нужно.
+
+ВАЖНО ПРО ФОТО 1: Клеопатра это реальное историческое лицо. Фотореалистичное
+лицо не генерировать. Либо взять подлинник (берлинский бюст Клеопатры VII,
+монета с её профилем), либо использовать промт ниже, где лицо не видно.
+
+Все сгенерированные картинки помечать в подписи: «Изображение создано ИИ».
+
+
+-----------------------------------------------------------------------
+ФОТО 1 (обложка, 16:9)
+-----------------------------------------------------------------------
+Oil painting, Ptolemaic Egyptian queen seen from behind at a palace window
+overlooking Alexandria harbour at dusk, face not visible, linen gown, dark
+braided wig, alabaster perfume vessels on a low table in the foreground,
+warm amber light, muted earth palette, visible brushwork, museum
+illustration style, no text, no modern objects
+
+
+-----------------------------------------------------------------------
+ФОТО 2 (3:2)
+-----------------------------------------------------------------------
+Oil painting still life, raw myrrh resin lumps and cinnamon bark on a stone
+slab, small ceramic bowls with ground spices, ancient Egyptian workshop
+setting, dim warm light from a single window, dusty air, muted ochre and
+brown palette, visible brushwork, museum illustration style, no text
+
+
+-----------------------------------------------------------------------
+ФОТО 3 (3:2)
+-----------------------------------------------------------------------
+Oil painting, ancient Egyptian alabaster perfume jar with narrow neck sealed
+with wax, standing on a wooden table beside a bronze spatula, translucent
+stone glowing softly in lamplight, dark background, muted cream and amber
+palette, visible brushwork, museum illustration style, no text
+
+
+-----------------------------------------------------------------------
+ФОТО 4 (3:2)
+-----------------------------------------------------------------------
+Oil painting, interior of an ancient Egyptian temple at evening, priest in
+white linen placing incense pellets on a bronze burner, thick fragrant smoke
+rising past painted columns, hieroglyph carvings barely visible in shadow,
+warm firelight, deep ochre and umber palette, visible brushwork, museum
+illustration style, faces turned away, no text
+
+
+-----------------------------------------------------------------------
+ФОТО 5 (3:2)
+-----------------------------------------------------------------------
+Oil painting still life, ancient Egyptian grooming tools laid on linen cloth,
+bronze razor, copper tweezers, a dark braided wig on a wooden stand, small
+dish of natron salt, soft daylight from the side, muted sand and bronze
+palette, visible brushwork, museum illustration style, no people, no text
+
+
+-----------------------------------------------------------------------
+ФОТО 6 (3:2)
+-----------------------------------------------------------------------
+Oil painting in the manner of an ancient Egyptian tomb fresco, banquet guests
+seated in profile wearing pale cone shaped objects on their wigs, stylised
+flat figures, faded pigment on plaster, cracks and worn patches, ochre red
+and cream palette, archaeological reproduction look, no text
+
+
+-----------------------------------------------------------------------
+ФОТО 7 (16:9)
+-----------------------------------------------------------------------
+Oil painting, ancient royal barge with gilded stern and purple sails moving
+up a river at golden hour, crowds gathered on both banks watching from a
+distance, figures small and indistinct, haze and warm light over the water,
+muted purple gold and dust palette, visible brushwork, museum illustration
+style, no text, no visible faces
+
+
+-----------------------------------------------------------------------
+ЕСЛИ ХОТИТЕ ПОДЛИННИКИ ВМЕСТО ГЕНЕРАЦИИ
+-----------------------------------------------------------------------
+ФОТО 1  — бюст Клеопатры VII, Altes Museum, Берлин; или монета с её профилем
+ФОТО 3  — египетские алебастровые сосуды для благовоний, коллекции Лувра,
+          Британского музея, Метрополитен
+ФОТО 5  — бронзовые бритвы и парики из египетских коллекций, Метрополитен
+ФОТО 6  — роспись из гробницы Небамуна, Британский музей: гости с конусами
+
+Подлинники всегда сильнее по доверию. Генерация нужна там, где подлинника
+не существует: интерьеры, сцены, предметы в действии.

@@ -1,0 +1,154 @@
+Чем чистили зубы английские королевы
+
+
+[ФОТО 1]
+
+Английские королевы чистили зубы сахаром. Не углём, не солью, не толчёной костью, а чистым сахаром.
+
+Логика в этом была, только не гигиеническая.
+
+[ФОТО 2]
+
+Речь про Англию шестнадцатого века. Сахар тогда лишь начал приходить в Европу из колоний, стоил огромных денег и был доступен единицам.
+
+Из него делали густую пасту и втирали её в зубы и дёсны кусочком ткани. Считалось, что зубы от этого полируются и начинают блестеть.
+
+Пользы в такой чистке не было никакой. Зато была видна цена.
+
+[ФОТО 3]
+
+Прочие способы выглядели скромнее. В ход шли зубочистки из дерева или птичьих перьев, а налёт снимали тряпицей.
+
+Простой народ чистил зубы углём. И вот тут насмешка истории: уголь действительно отбеливал, потому что работал как мягкий абразив.
+
+То есть бедняки чистили зубы правильно, а знать портила их дорогим способом.
+
+[ФОТО 4]
+
+Когда зуб всё-таки начинал болеть, объяснение было готово. Виноват зубной червь, который завёлся внутри и точит зуб изнутри.
+
+Поверье это очень старое. Червь встречается ещё в вавилонских табличках, потом у римлян, потом в арабских и англосаксонских текстах.
+
+Выглядел он у всех по-разному. В Англии червя представляли похожим на угря, а в северной Германии считали красным, синим и серым.
+
+[ФОТО 5]
+
+Лечение сводилось к тому, чтобы червя убить или усыпить. Брали гвоздику, перец и травы, настоянные на вине. От сильной боли вдыхали дым тлеющей белены.
+
+Если не помогало, шли к цирюльнику. Отдельных зубных врачей тогда не было, и зуб выдирал тот же человек, который брил бороды.
+
+***
+
+[ФОТО 6]
+
+Теперь про последствия. К пятидесяти годам зубы Елизаветы I были испорчены необратимо: потемнели, а часть попросту выпала.
+
+И дальше случилось то, чего логика не предсказывает. Чёрные зубы вошли в моду.
+
+Раз позволить себе сахар могли только богатые, значит и порча зубов стала признаком достатка. А те, кому сахар был не по карману, начали чернить зубы сажей, чтобы выглядеть состоятельнее.
+
+Мода продержалась примерно до конца правления Елизаветы и сошла вместе с ним.
+
+[ФОТО 7]
+
+В 1598 году Англию посетил немец Пауль Хентцнер и оставил описание королевы на шестьдесят пятом году жизни.
+
+Лицо продолговатое, светлое, в морщинах. Глаза небольшие, тёмные и приятные. Нос с лёгкой горбинкой, губы узкие.
+
+И зубы чёрные, что у англичан не редкость от чрезмерного пристрастия к сахару.
+
+Спасибо, что дочитали. Если было интересно, поставьте лайк и подпишитесь: здесь выходят истории о том, как люди прошлого жили на самом деле.
+
+
+==========================================================================
+НИЖЕ В ПУБЛИКАЦИЮ НЕ ИДЁТ. ПРОМТЫ ДЛЯ ГЕНЕРАЦИИ ИЗОБРАЖЕНИЙ
+==========================================================================
+
+Промты на английском: модели генерации стабильнее его понимают.
+Стилевой хвост и пропорции вшиты в каждый, дописывать ничего не нужно.
+
+Елизавета I реальное лицо. Фотореалистичный портрет не генерировать, для
+неё брать подлинники: «Портрет Дарнли», «Портрет с радугой», «Армадский
+портрет». В промтах ниже лица обобщённые или не видны.
+
+Все сгенерированные картинки помечать в подписи: «Изображение создано ИИ».
+
+ВАЖНО: ни в одном промте нет и не должно быть крупных планов больных зубов,
+крови и сцен вырывания. Тема подаётся через предметы и обстановку.
+
+
+--- ФОТО 1, обложка ---
+
+Oil painting still life, Tudor dressing table with a silver dish of white
+sugar loaf pieces, a folded linen cloth, small carved wooden toothpicks in a
+case and a hand mirror, heavy velvet drape behind, warm candlelight, muted
+crimson gold and cream palette, visible brushwork, museum illustration style,
+no people, no text, wide 16:9 aspect ratio
+
+
+--- ФОТО 2 ---
+
+Oil painting still life, cone shaped sugar loaf wrapped in blue paper on a
+wooden table, iron sugar nippers beside it, a few broken white lumps, dim
+storeroom light from a small window, muted brown blue and cream palette,
+visible brushwork, museum illustration style, no people, no text,
+3:2 landscape aspect ratio
+
+
+--- ФОТО 3 ---
+
+Oil painting, sixteenth century English kitchen, common woman grinding
+charcoal in a small mortar by the hearth, coarse linen apron, firelight from
+the side, seen in three-quarter view with a generic face, muted grey brown
+and ochre palette, visible brushwork, museum illustration style, no text,
+3:2 landscape aspect ratio
+
+
+--- ФОТО 4 ---
+
+Oil painting in the manner of a medieval manuscript illustration, stylised
+drawing of a long worm coiled inside a tooth, decorative border with
+flourishes, aged parchment texture, faded red brown and ochre ink, flat
+naive style, archaeological reproduction look, no text,
+3:2 landscape aspect ratio
+
+
+--- ФОТО 5 ---
+
+Oil painting, barber surgeon shop in a sixteenth century town, wooden chair,
+basin, shaving razors and iron pincers hanging on the wall, striped pole
+visible through the doorway, one figure seated with back to the viewer, dim
+daylight, muted brown and grey palette, visible brushwork, museum
+illustration style, no blood, no text, 3:2 landscape aspect ratio
+
+
+--- ФОТО 6 ---
+
+Oil painting, Elizabethan courtiers at a banquet table seen from a distance,
+elaborate ruffs and dark velvet clothing, candlelight and silver dishes,
+figures in half shadow with faces indistinct, muted black gold and cream
+palette, visible brushwork, museum illustration style, no close faces,
+no text, 3:2 landscape aspect ratio
+
+
+--- ФОТО 7 ---
+
+Oil painting still life, open leather bound travel journal with handwritten
+pages, quill and inkwell, a pair of spectacles and a candle stub on a wooden
+desk, small window with grey evening light behind, muted brown parchment and
+grey palette, visible brushwork, museum illustration style, no people,
+no text, wide 16:9 aspect ratio
+
+
+--- ЕСЛИ ХОТИТЕ ПОДЛИННИКИ ВМЕСТО ГЕНЕРАЦИИ ---
+
+ФОТО 1 или 6  портреты Елизаветы I: «Портрет Дарнли» и «Армадский портрет»,
+              National Portrait Gallery
+ФОТО 4        средневековые изображения зубного червя, в том числе
+              французская резная кость XVIII века с червём внутри зуба
+ФОТО 5        гравюры и картины с цирюльниками, вырывающими зубы:
+              работы голландских мастеров XVII века
+ФОТО 7        издания записок Пауля Хентцнера о путешествии по Англии
+
+Подлинники всегда сильнее по доверию. По этой теме их особенно много:
+портреты, гравюры и медицинские иллюстрации хорошо сохранились.

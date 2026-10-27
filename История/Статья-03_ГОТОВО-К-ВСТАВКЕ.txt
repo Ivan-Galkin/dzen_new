@@ -1,0 +1,152 @@
+Как мылись самураи перед боем
+
+
+[ФОТО 1]
+
+Перед сражением самурай мыл голову и окуривал шлем изнутри благовониями. Делал он это не для себя.
+
+Речь про Японию эпохи Сэнгоку, время междоусобных войн с пятнадцатого по семнадцатый век.
+
+Начиналось всё с омовения. Ритуальная ванна перед выходом считалась очищением не только тела, но и духа, и без неё в бой не шли.
+
+[ФОТО 2]
+
+Ночью накануне воин клал внутрь шлема стружку дзинко, агарового дерева, и поджигал её. Дым пропитывал подкладку, ремни и волосы. Запах держался долго.
+
+Агаровое дерево везли с юга, и стоило оно дорого. Воин победнее обходился смолами попроще, но окуривал шлем всё равно.
+
+Тем же дымом обрабатывали доспех и оружие. Считалось, что аромат отгоняет злых духов и очищает вещи не хуже, чем вода очищает тело.
+
+[ФОТО 3]
+
+Само по себе увлечение ароматами чудачеством не выглядело. Кодо, «путь аромата», стоял в одном ряду с каллиграфией и чайной церемонией, и разбираться в сортах дерева человеку сословия полагалось.
+
+А теперь то, ради чего окуривали именно шлем.
+
+[ФОТО 4]
+
+Голову побеждённого противника победитель предъявлял своему полководцу. Церемония называлась куби дзиккэн, и от неё зависели награда и признание заслуг.
+
+Награду платили по числу и знатности предъявленного, поэтому счёт вели строго.
+
+К церемонии голову готовили заранее: обмывали, заново подвязывали волосы, поправляли лицо. Занимались этим женщины из самурайских семей.
+
+Дальше логика простая. Самурай знал, что в случае поражения его увидят именно так, и заранее делал это зрелище достойным.
+
+Окуренный шлем был последним, что он мог о себе сообщить.
+
+[ФОТО 5]
+
+Стоит добавить, что японцы вообще мылись часто. Общественные бани в Киото упоминаются ещё в эпоху Хэйан, за несколько столетий до описанных событий.
+
+Мытьё там рано срослось с представлением о духовной чистоте. Буддизм принёс идею омовения как смывания скверны, и она осталась в быту.
+
+К эпохе Эдо в одном только Токио работало больше пятисот бань. Ходить туда раз в день мог позволить себе даже бедняк.
+
+А самураи пользовались ещё и горячими источниками, лечили там раны. Но при этом добились для себя отдельных часов, чтобы не оказаться в одной воде с торговцами.
+
+***
+
+[ФОТО 6]
+
+На Руси в это же время тоже мылись регулярно, и баня была делом обычным. Разница была в другом. Русский человек шёл в баню для себя, а самурай готовил себя к чужому взгляду.
+
+[ФОТО 7]
+
+На японских гравюрах церемонию куби дзиккэн изображают одинаково. Полководец не смотрит на голову прямо.
+
+Он держит перед лицом раскрытый веер и глядит краем левого глаза, не снимая правой руки с рукояти меча. Считалось, что убитый не должен его узнать.
+
+
+==========================================================================
+НИЖЕ В ПУБЛИКАЦИЮ НЕ ИДЁТ. ПРОМТЫ ДЛЯ ГЕНЕРАЦИИ ИЗОБРАЖЕНИЙ
+==========================================================================
+
+Промты на английском: модели генерации стабильнее его понимают.
+Стилевой хвост и пропорции вшиты в каждый, дописывать ничего не нужно.
+
+Тоётоми Хидэёси реальное лицо, фотореалистичный портрет не генерировать.
+В промте ниже лицо закрыто веером, что и соответствует обычаю.
+
+Все сгенерированные картинки помечать в подписи: «Изображение создано ИИ».
+
+ВАЖНО: ни в одном промте нет и не должно быть отрубленных голов, крови и
+сцен насилия. Тема подаётся через предметы и обычай, а не через изображение.
+
+
+--- ФОТО 1, обложка ---
+
+Oil painting, Japanese samurai helmet with wide neck guard resting on a
+wooden stand in a dim room, thin ribbon of incense smoke rising from inside
+the bowl of the helmet, folded armour lacing beside it, single lantern,
+muted indigo brown and gold palette, visible brushwork, museum illustration
+style, no people, no text, wide 16:9 aspect ratio
+
+
+--- ФОТО 2 ---
+
+Oil painting still life, small shavings of dark agarwood on a lacquered tray,
+tiny bronze incense burner with glowing ember, silk pouch, low warm light
+from one side, dark background, muted black gold and umber palette, visible
+brushwork, museum illustration style, no people, no text,
+3:2 landscape aspect ratio
+
+
+--- ФОТО 3 ---
+
+Oil painting, Japanese incense appreciation ceremony, three figures in
+formal robes kneeling around a low lacquered table with a small burner,
+seen from behind and in profile, tatami room with paper screens, soft
+diffused daylight, muted cream indigo and grey palette, visible brushwork,
+museum illustration style, no recognisable faces, no text,
+3:2 landscape aspect ratio
+
+
+--- ФОТО 4 ---
+
+Oil painting, Sengoku period samurai kneeling in a war camp before dawn,
+carefully tying his hair before putting on the helmet placed in front of
+him, seen from behind over his shoulder, tent cloth and banners in the
+background, cold blue morning light, muted indigo and steel palette, visible
+brushwork, museum illustration style, no text, 3:2 landscape aspect ratio
+
+
+--- ФОТО 5 ---
+
+Oil painting, interior of an old Japanese public bathhouse, wooden tubs and
+buckets, steam filling the room, figures indistinct in the vapour seen from
+a distance, wooden beams and lattice window, warm grey and cedar palette,
+visible brushwork, museum illustration style, modest, no nudity, no text,
+3:2 landscape aspect ratio
+
+
+--- ФОТО 6 ---
+
+Oil painting, Russian wooden bathhouse interior at dusk, birch besoms
+hanging on the wall, iron stove with hot stones, wooden bench and copper
+bucket, steam and low warm light, muted brown and grey palette, visible
+brushwork, museum illustration style, no people, no text,
+3:2 landscape aspect ratio
+
+
+--- ФОТО 7 ---
+
+Oil painting in the manner of a Japanese woodblock print, seated warlord in
+formal robes holding an open folding fan in front of his face, right hand
+resting on the hilt of a sword, attendants kneeling at a distance, flat
+stylised composition, faded pigment, ochre indigo and cream palette,
+archaeological reproduction look, no text, wide 16:9 aspect ratio
+
+
+--- ЕСЛИ ХОТИТЕ ПОДЛИННИКИ ВМЕСТО ГЕНЕРАЦИИ ---
+
+ФОТО 1  японские шлемы кабуто из собраний Метрополитен, Британского музея,
+        Токийского национального музея
+ФОТО 2  принадлежности для кодо: наборы для благовоний из японских
+        музейных коллекций
+ФОТО 3  гравюры с изображением церемонии благовоний, эпоха Эдо
+ФОТО 5  гравюры Утагавы Кунисады и других с банными сценами эпохи Эдо
+ФОТО 7  гравюра Цукиоки Ёситоси с церемонией куби дзиккэн
+
+Подлинники всегда сильнее по доверию. Генерация нужна там, где подлинника
+не существует: интерьеры в действии, сцены, люди за работой.
