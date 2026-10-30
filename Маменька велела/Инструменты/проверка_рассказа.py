@@ -1,11 +1,35 @@
-# Проверка рассказа канала «Маменька велела» по числам из ИНСТРУКЦИЯ.md.
-# Запуск: python3 проверка_рассказа.py Рассказ-40_ГОТОВО-К-ВСТАВКЕ.md [--глава]
+# Проверка рассказа канала «Маменька велела» по числам из ИНСТРУКЦИЯ.md и Формы_рассказов.md.
+# Запуск: python3 проверка_рассказа.py Рассказ-40_ГОТОВО-К-ВСТАВКЕ.md [--форма повесть] [--глава]
 import re, sys
 
 if len(sys.argv) < 2:
     print('Укажите файл рассказа'); sys.exit(1)
 path = sys.argv[1]
 chapter = '--глава' in sys.argv
+
+# Формы рассказа (с 30.10.2026): правила в Формы_рассказов.md. Без --форма проверяется классический рассказ.
+# Запуск: python3 проверка_рассказа.py Рассказ-50_ГОТОВО-К-ВСТАВКЕ.md --форма повесть [--глава]
+FORMS = {
+    'рассказ':   dict(name='классический рассказ', lo=9000,  hi=12000, paras=(55, 80),  dia=(0.30, 0.50), first=False),
+    'повесть':   dict(name='повесть в одной статье', lo=15000, hi=20000, paras=(90, 135), dia=(0.30, 0.50), first=False),
+    'линии':     dict(name='две линии',            lo=15000, hi=25000, paras=(90, 165), dia=(0.30, 0.50), first=False),
+    'хроника':   dict(name='тогда и сейчас: хроника', lo=9000, hi=18000, paras=(45, 120), dia=(0.15, 0.50), first=False),
+    'перебивка': dict(name='тогда и сейчас: перебивка', lo=15000, hi=25000, paras=(90, 165), dia=(0.30, 0.50), first=False),
+    'исповедь':  dict(name='исповедь, первое лицо', lo=15000, hi=20000, paras=(90, 135), dia=(0.30, 0.50), first=True),
+    'глаза':     dict(name='глазами другого (разовый тест)', lo=12000, hi=18000, paras=(70, 120), dia=(0.30, 0.50), first=True),
+    'ошиблась':  dict(name='ошиблась в человеке (разовый тест)', lo=9000, hi=20000, paras=(55, 135), dia=(0.30, 0.50), first=False),
+}
+form = 'рассказ'
+for _i, _a in enumerate(sys.argv):
+    if _a.startswith('--форма='):
+        form = _a.split('=', 1)[1]
+    elif _a == '--форма' and _i + 1 < len(sys.argv):
+        form = sys.argv[_i + 1]
+form = form.strip().lower()
+if form not in FORMS:
+    print('Неизвестная форма:', form, '| есть:', ', '.join(FORMS)); sys.exit(1)
+P = FORMS[form]
+print(f'Форма: {form} ({P["name"]})' + ('; глава' if chapter else ''))
 t = open(path, encoding='utf-8').read()
 
 t2 = re.sub(r'\*\*\[.*?\]\*\*', '', t)
@@ -33,12 +57,22 @@ def check(ok, label, value, norm):
         problems.append(label)
 
 n = len(text)
-lo = 8500 if chapter else 9000
-check(lo <= n <= 12000, 'Знаков', n, f'{lo}–12000')
-check(55 <= len(paras) <= 80, 'Абзацев', len(paras), '55–80')
+lo, hi = (8500, 12000) if chapter else (P['lo'], P['hi'])
+pl, ph = (55, 80) if chapter else P['paras']
+check(lo <= n <= hi, 'Знаков', n, f'{lo}–{hi}')
+check(pl <= len(paras) <= ph, 'Абзацев', len(paras), f'{pl}–{ph}')
 dia = [p for p in paras if p.startswith('—')]
 share = len(dia) / len(paras) if paras else 0
-check(0.30 <= share <= 0.50, 'Абзацев-реплик', f'{share:.0%}', '30–50%')
+dl, dh = P['dia']
+check(dl <= share <= dh, 'Абзацев-реплик', f'{share:.0%}', f'{dl*100:.0f}–{dh*100:.0f}%')
+_FIRST = {'я', 'мне', 'меня', 'мной', 'мною', 'мой', 'моя', 'моё', 'мое', 'мои', 'мою', 'моего', 'моей', 'моих', 'моим', 'моими', 'моему', 'моём', 'моем'}
+_nar = [p for p in paras if not p.startswith('—') and not p.startswith(('*', '_'))]
+_w = re.findall(r'[а-яё]+', ' '.join(_nar).lower())
+fp = sum(1 for x in _w if x in _FIRST) * 100 / max(1, len(_w))
+if P['first']:
+    check(fp >= 1.5, '«Я» рассказчицы в повествовании', f'{fp:.1f} на 100 слов', 'не меньше 1,5: форма от первого лица')
+else:
+    check(fp <= 1.0, '«Я» в повествовании', f'{fp:.1f} на 100 слов', 'третье лицо: «я» только в репликах и письмах')
 avg = sum(wc) / len(wc) if wc else 0
 check(7.5 <= avg <= 9.5, 'Слов в предложении', round(avg, 2), '8–9, допустимо 7,5–9,5')
 longs = sum(1 for w in wc if w >= 11) / len(wc) if wc else 0
