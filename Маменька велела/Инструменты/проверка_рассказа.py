@@ -165,5 +165,103 @@ if cur:
         bad = _relic(mine) and any(p and _relic(p) for p in prev3)
         check(not bad, 'Финал-вещь', 'повтор' if bad else 'нет повтора', 'вещь-реликвия в последнем абзаце не чаще одного рассказа из четырёх')
 
+# Л14 (с 30.10.2026): второстепенный герой мелькнул и вернулся через 5 000+ знаков. Скрипт только подсказывает,
+# где проверить: если в той же фразе не напомнено, кто он, и напоминание уместно, добавить одну-две приметы.
+_GAP = 5000
+_END = ('ыми', 'ими', 'ами', 'ями', 'ому', 'ему', 'ого', 'его', 'ой', 'ей', 'ым', 'им', 'ом', 'ем', 'ам', 'ям', 'ах', 'ях', 'ых', 'их',
+        'у', 'ю', 'а', 'я', 'ы', 'и', 'е')
+def _stem(w):
+    w = w.lower().replace('ё', 'е')
+    for e in _END:
+        if w.endswith(e) and len(w) - len(e) >= 2:
+            w = w[:-len(e)]; break
+    return w.rstrip('ьй')
+_NOTNAME = ('бог', 'господ', 'христ', 'богородиц', 'пасх', 'рождеств', 'крещен', 'троиц', 'покров', 'маслен', 'велик', 'пост', 'светл', 'красн', 'горк',
+            'спас', 'восьм', 'петров', 'ильин', 'никол', 'благовещ', 'вознесен', 'успен', 'новый', 'нового', 'новом', 'первомай', 'октябр', 'побед',
+            'ключ', 'заречь', 'ольхов', 'ольшанк', 'покровск', 'москв', 'ленинград', 'росси', 'волг', 'сибир', 'урал', 'кавказ', 'крым', 'петербург',
+            'киев', 'казан', 'саратов', 'пенз', 'берлин', 'германи', 'ведомост', 'губернск', 'правд', 'известия', 'советск', 'союз', 'ссср', 'родин')
+_ROLE = re.compile(r'(майор|дяд|тет|нян|предводител|председател|судь|старост|свекров|свекр|золовк|девер|невестк|снох|сосед|бригадир|учител|фельдшер|доктор|врач|'
+                   r'батюшк|поп|барин|барын|барышн|купец|купц|купчих|приказчик|исправник|управляющ|инспектор|директор|парторг|агроном|почтальон|кум|крестн|'
+                   r'внук|внучк|брат|сестр|отец|отц|мать|матер|муж|жен|вдов|шофер|тракторист|кладовщик|счетовод|продавщиц|завмаг|лесник|пастух|кузнец|мельник|конюх|'
+                   r'повитух|сын|доч|зят|тест|тещ|племянни|падчериц|пасын|мачех|отчим|мельничих|стар|помещиц|полковниц|генеральш|дворнич|портних|почтмейстер|ротмистр|штабс|кухарк|горничн|ключниц|экономк|гувернантк|сват|кучер|'
+                   r'бабк|бабушк|дед|товарищ|друг|подруг|заседател|офицер|полковник|генерал|капитан|поручик|денщик|солдат|унтер|писар|урядник|лавочник|'
+                   r'мастер|начальник|комендант|вахтер|дворник|секретар|милиционер|участков|следовател|адвокат|нотариус|паренек|девк|девушк|парн|мальчишк|старик|старух)')
+_REMIND = re.compile(r'тот самый|та самая|того самого|той самой|тому самому|те самые|тех самых|та, что|тот, что|той, что|того, что|тому, что|которого|которая|который|которой|которую', re.I)
+_ent = {}
+_places = set()
+_PLACE_PREP = {'в', 'во', 'из', 'под', 'через', 'до', 'по', 'за'}
+_PLACE_NEXT = ('проспект', 'улиц', 'переул', 'бульвар', 'площад', 'шоссе', 'район', 'завод', 'фабрик', 'речк', 'рек', 'вокзал', 'мост', 'остров', 'лини', 'набережн', 'базар', 'ярмарк', 'рын', 'монастыр', 'церк', 'собор', 'станци', 'пристан', 'слобод', 'январ', 'феврал', 'март', 'апрел', 'мая', 'июн', 'июл', 'август', 'сентябр', 'октябр', 'ноябр', 'декабр', 'губерни', 'уезд', 'волост', 'област', 'край', 'кра', 'дорог')
+def _find(s):
+    while _ent.get(s, s) != s: s = _ent[s]
+    return s
+_toks = []
+_pos = 0
+for p in paras:
+    italic = p.startswith(('*', '_'))
+    for m in re.finditer(r'[А-ЯЁ][а-яё]{2,}', p):
+        w = m.group()
+        if w.lower().replace('ё', 'е').startswith(_NOTNAME):
+            continue
+        before = p[:m.start()].rstrip(' *_')
+        initial = not before or before[-1] in '.!?…—«(:'
+        quoted = italic or p[:m.start()].count('«') > p[:m.start()].count('»')
+        prev2 = re.findall(r'[А-Яа-яЁё]+', p[:m.start()])[-1:]
+        nxt = re.match(r'\s+([а-яё]+)', p[m.end():])
+        place = (bool(prev2) and (prev2[0] in _PLACE_PREP or (prev2[0] == 'на' and re.search(r'(е|ой|ом|ах|ях)$', w))))
+        place = place or bool(nxt and nxt.group(1).startswith(_PLACE_NEXT))
+        if place:
+            _places.add(_stem(w)); continue
+        vocative = p.startswith('—') and bool(re.match(r'[,!?]', p[m.end():m.end() + 1])) and before[-1:] in (',', '—', '')
+        _toks.append(dict(s=_stem(w), at=_pos + m.start(), initial=initial, skip=quoted or vocative, p=p, a=m.start(), b=m.end()))
+    _pos += len(p) + 1
+_names = {t['s'] for t in _toks if not t['initial']}
+_toks = [t for t in _toks if t['s'] in _names or any(t['s'].endswith(x) and t['s'][:-2] in _names for x in ('ин', 'ын', 'ов', 'ев'))]
+for t in _toks:  # притяжательные: Катин, Олиной, Фёдоров → Катя, Оля, Фёдор
+    for suf in ('ин', 'ын', 'ов', 'ев'):
+        if t['s'].endswith(suf) and t['s'][:-2] in _names:
+            t['s'] = t['s'][:-2]
+for x, y in zip(_toks, _toks[1:]):  # Матрёна Ивановна, Виктор Андреевич Мерцалов: один человек
+    if x['p'] is y['p'] and re.fullmatch(r'\s+', x['p'][x['b']:y['a']]):
+        _ent[_find(y['s'])] = _find(x['s'])
+_toks = [t for t in _toks if t['s'] not in _places]
+_st = sorted({t['s'] for t in _toks}, key=len)
+for i, x in enumerate(_st):
+    for y in _st[i + 1:]:
+        if len(x) >= 4 and y.startswith(x):
+            _ent[_find(y)] = _find(x)
+_occ = {}
+_last = None
+for t in _toks:  # имя, отчество и фамилия подряд считаются одним упоминанием
+    e = _find(t['s'])
+    if not (_last and _last['p'] is t['p'] and _find(_last['s']) == e and re.fullmatch(r'\s+', t['p'][_last['b']:t['a']])):
+        _occ.setdefault(e, []).append(t)
+    _last = t
+_late = []
+for s, occ in _occ.items():
+    if all(o['initial'] for o in occ) and s not in _names:
+        continue
+    for k in range(1, min(len(occ), 3)):
+        cur_t, prev_t = occ[k], occ[k - 1]
+        if cur_t['at'] - prev_t['at'] < _GAP or cur_t['skip'] or cur_t['p'].startswith('—'):
+            continue
+        p, a, b = cur_t['p'], cur_t['a'], cur_t['b']
+        sent_a = max(p.rfind('. ', 0, a), p.rfind('! ', 0, a), p.rfind('? ', 0, a), p.rfind('— ', 0, a)) + 1
+        ends = [x for x in (p.find('. ', b), p.find('! ', b), p.find('? ', b)) if x >= 0]
+        sent = p[sent_a:(min(ends) + 1 if ends else len(p))].strip(' —')
+        prev_w = re.findall(r'[А-Яа-яЁё]+', p[:a])[-1:]
+        if prev_w and prev_w[0][0].isupper() and _stem(prev_w[0]) not in _names:  # «Бабка Липа», «Купчиха Сысоева»
+            prev_w = [prev_w[0].lower()]
+        tail = re.match(r'(\s+[А-ЯЁ][а-яё]+)*', p[b:]).group()
+        reminded = (bool(re.match(r',\s*[А-Яа-яЁё]', p[b + len(tail):])) or bool(prev_w and _ROLE.match(prev_w[0].lower().replace('ё', 'е')))
+                    or bool(_REMIND.search(sent)))
+        if not reminded:
+            _late.append(f'{p[a:b]}{tail} (перерыв {(cur_t["at"] - prev_t["at"]) // 1000} тыс. знаков): {sent[:110]}')
+        break
+_mark = 'OK        ' if not _late else 'ПРОВЕРИТЬ '
+print(f'{_mark}Напоминание о вернувшемся герое (Л14): {"нет пропусков" if not _late else len(_late)} '
+      f'(норма второстепенный герой через 5 000+ знаков: в той же фразе кто он, «Мерцалову, папенькиному товарищу»; если уместно)')
+for x in _late: print('    ', x)
+
 print()
-print('ИТОГ:', 'всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
+print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
+      + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else ''))
