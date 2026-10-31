@@ -120,7 +120,7 @@ check(not miss, 'Обязательные строки', 'все на месте
 check(t.count('```') == 6, 'Промтов к картинкам', t.count('```') // 2, '3')
 
 
-# Против шаблона (с 26.10.2026): слово ЭПИЛОГ, зачин «Было это…», финал-реликвия в сравнении с тремя прошлыми рассказами папки
+# Против шаблона (с 26.10.2026): строка ЭПИЛОГ (с 31.10.2026 не чаще одного из трёх), зачин «Было это…», финал-реликвия в сравнении с тремя прошлыми рассказами папки
 import os, glob
 def _num(fn):
     m = re.search(r'Рассказ-(\d+)(?:-(\d))?_', os.path.basename(fn))
@@ -135,8 +135,7 @@ _RELIC = re.compile(r'до сих пор|так и (висит|висят|леж
 def _bylo(p): return bool(re.search(r'(^|[\s«])Было это', ' '.join(p[:8])))
 def _relic(p): return bool(p) and bool(_RELIC.search(p[-1]))
 cur = _num(path)
-check('ЭПИЛОГ' not in t.split('\n'), 'Слово «ЭПИЛОГ»', 'нет' if 'ЭПИЛОГ' not in t.split('\n') else 'есть',
-      'с 26.10.2026 не пишем: перед развязкой через годы ставим ***')
+_epi = lambda txt: 'ЭПИЛОГ' in [l.strip().strip('*').strip() for l in txt.split('\n')]
 if cur:
     folder = os.path.dirname(os.path.abspath(path))
     files = {}
@@ -154,6 +153,13 @@ if cur:
         prev2 = [_get(n, 'zachin') for n in prev[-2:]]
         bad = _bylo(mine) and any(p and _bylo(p) for p in prev2)
         check(not bad, 'Зачин «Было это…»', 'повтор' if bad else 'нет повтора', 'не чаще одного рассказа из трёх')
+    if cur[1] != 1:  # строка «ЭПИЛОГ» (с 31.10.2026): можно, но не чаще одного рассказа из трёх
+        prevE = []
+        for n in prev[-2:]:
+            f = files[n].get(0) or files[n].get(2)
+            if f: prevE.append(open(f, encoding='utf-8').read())
+        bad = _epi(t) and any(_epi(x) for x in prevE)
+        check(not bad, 'Строка «ЭПИЛОГ»', 'повтор' if bad else ('есть' if _epi(t) else 'нет'), 'можно, но не чаще одного рассказа из трёх (с 31.10.2026)')
     if cur[1] != 1:
         prev3 = [_get(n, 'final') for n in prev]
         bad = _relic(mine) and any(p and _relic(p) for p in prev3)
