@@ -290,6 +290,26 @@ check(not _heavy, 'Тяжёлые имена', 'нет' if not _heavy else ', '.
 _rare = _found(RARE)
 check(len(_rare) <= RARE_MAX, 'Редких имён', f'{len(_rare)}' + (f' ({", ".join(_rare)})' if _rare else ''), f'не больше {RARE_MAX} на рассказ')
 
+# Одно место на картинках (с 31.10.2026): если две картинки в одном помещении, паспорт места повторяется дословно
+import difflib
+_pr = [re.sub(r'\s+', ' ', x).strip() for x in re.findall(r'```(.*?)```', open(path, encoding='utf-8').read(), flags=re.S)]
+_pr = [x.replace('wide 16:9 aspect ratio', '').strip() for x in _pr]
+if len(_pr) >= 2:
+    _suf = os.path.commonprefix([x[::-1] for x in _pr])[::-1]
+    _core = [x[:len(x) - len(_suf)] for x in _pr]
+    _ROOM = ('kitchen', 'izba', 'hut', 'room', 'parlour', 'parlor', 'chamber', 'corridor', 'hallway', 'courtyard', 'dormitory', 'barrack', 'office')
+    _same = []
+    for i in range(len(_core)):
+        for j in range(i + 1, len(_core)):
+            a, b = _core[i].lower(), _core[j].lower()
+            if any(w in a and w in b for w in _ROOM):
+                m = difflib.SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b))
+                if m.size < 60:
+                    _same.append(f'картинки {i + 1} и {j + 1}: общее место, а общего описания нет')
+    _mark = 'OK        ' if not _same else 'ПРОВЕРИТЬ '
+    print(f'{_mark}Одно место на картинках: {"паспорт места повторён или места разные" if not _same else len(_same)} (норма если место одно, его описание дословно одинаково во всех промтах)')
+    for x in _same: print('    ', x)
+
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
       + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else ''))
