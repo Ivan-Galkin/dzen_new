@@ -310,6 +310,118 @@ if len(_pr) >= 2:
     print(f'{_mark}Одно место на картинках: {"паспорт места повторён или места разные" if not _same else len(_same)} (норма если место одно, его описание дословно одинаково во всех промтах)')
     for x in _same: print('    ', x)
 
+# Дословный повтор заголовка (с 07.11.2026, решение владельца 06.11): заголовок не должен совпадать
+# с заголовком любого рассказа во всех папках каналов. Похожие слова в соседних каналах можно.
+def _tnorm(s):
+    s = re.sub(r'\.\s*Глава\s*\d+\s*$', '', s.replace('**', '').strip().lstrip('#').strip())
+    return ' '.join(re.findall(r'[а-яa-z0-9]+', s.lower().replace('ё', 'е')))
+def _ttitle(fn):
+    try:
+        return open(fn, encoding='utf-8').readline().replace('**', '').strip().lstrip('#').strip()
+    except OSError:
+        return ''
+_title = open(path, encoding='utf-8').readline().replace('**', '').strip().lstrip('#').strip()
+_me = os.path.abspath(path)
+_mynum = _num(path)
+_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_dups = []
+for _f in glob.glob(os.path.join(_root, '*', 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md')):
+    _f = os.path.abspath(_f)
+    if _f == _me:
+        continue
+    if os.path.dirname(_f) == os.path.dirname(_me) and _mynum and _num(_f) and _num(_f)[0] == _mynum[0]:
+        continue  # другая глава той же истории
+    if _tnorm(_ttitle(_f)) == _tnorm(_title):
+        _dups.append(f'{os.path.basename(os.path.dirname(_f))}, {os.path.basename(_f).split("_")[0]}')
+check(not _dups, 'Заголовок уже был', 'нет' if not _dups else '; '.join(_dups), 'дословно не повторять ни в одном нашем канале')
+
+# Заголовки внутри канала и ТЕСТ-11 (с 07.11.2026, Карта-заголовков.md, раздел 0).
+TITLE_KINDS = ['действие', 'ситуация', 'срок', 'поговорка']
+TITLE_PER_KIND = 3
+TITLE_TEST_FROM = 85
+_tkind = None
+for _i, _a in enumerate(sys.argv):
+    if _a.startswith('--заголовок='):
+        _tkind = _a.split('=', 1)[1].strip().lower()
+    elif _a == '--заголовок' and _i + 1 < len(sys.argv):
+        _tkind = sys.argv[_i + 1].strip().lower()
+if _tkind and _tkind not in TITLE_KINDS:
+    print('Неизвестный вид заголовка:', _tkind, '| есть:', ', '.join(TITLE_KINDS)); sys.exit(1)
+_TEND = ('ами', 'ями', 'ого', 'его', 'ому', 'ему', 'ыми', 'ими', 'ья', 'ье', 'ьи', 'ью', 'ая', 'яя', 'ое', 'ее', 'ые', 'ие',
+         'ый', 'ий', 'ой', 'ей', 'ом', 'ем', 'ах', 'ях', 'ам', 'ям', 'ов', 'ев', 'ую', 'юю',
+         'а', 'я', 'ы', 'и', 'у', 'ю', 'е', 'о', 'ь', 'й')
+_TSTOP = {'через', 'после', 'перед', 'между', 'около', 'возле', 'вместо', 'кроме', 'среди', 'против', 'чтобы', 'когда', 'тоже', 'себя', 'свой', 'своя', 'свою', 'своей'}
+_TSYN = {'мат': 'мать', 'матер': 'мать', 'доч': 'дочь', 'дочер': 'дочь', 'дочк': 'дочь', 'дочен': 'дочь'}
+def _tname(s): return bool(re.match(r'^[А-ЯЁ][а-яё]+\.\s', s))
+def _tstems(s):
+    s = re.sub(r'\.\s*Глава\s*\d+\s*$', '', s)
+    m = re.match(r'^[А-ЯЁ][а-яё]+\.\s+', s)
+    if m: s = s[m.end():]
+    out = {}
+    for w0 in re.findall(r'[а-яё]+', s.lower().replace('ё', 'е')):
+        if len(w0) < 4 or w0 in _TSTOP: continue
+        w = w0
+        for e in _TEND:
+            if w.endswith(e) and len(w) - len(e) >= 3:
+                w = w[:-len(e)]; break
+        w = w[:5]
+        out[_TSYN.get(w, w)] = w0
+    return out
+_TDEF = re.compile(r'хром|(^|\s)нем(ая|ой|ую|ого|ые)(\s|$)|глух|слеп|калек|безрук|безног|(^|\s)кос(ая|ой|ую)(\s|$)|(^|\s)крив(ая|ой|ую)(\s|$)'
+                   r'|горбат|горбун|(^|\s)ряб(ая|ой|ую)(\s|$)|поводыр|глазлив|увеч|одноглаз|косоглаз|заик|убог')
+def _tdef(s): return bool(_TDEF.search(s.lower().replace('ё', 'е')))
+_tsoft = []
+if _mynum:
+    _prevt = {}
+    for _f in glob.glob(os.path.join(os.path.dirname(_me), 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md')):
+        _n = _num(_f)
+        if _n and _n[0] < _mynum[0] and (_n[0] not in _prevt or _n[1] < _prevt[_n[0]][0]):
+            _prevt[_n[0]] = (_n[1], _ttitle(_f))
+    _prev = [_prevt[k][1] for k in sorted(_prevt)][-14:]
+    _mine = _tstems(_title)
+    _hit = []
+    for _p in _prev[-6:]:
+        _same = sorted(_mine[k] for k in set(_mine) & set(_tstems(_p)))
+        if _same: _hit.append(f'«{", ".join(_same)}» было в «{_p}»')
+    check(not _hit, 'Слово заголовка в шести прошлых', 'нет' if not _hit else '; '.join(_hit), 'главное слово не чаще одного заголовка из семи')
+    _bad = _tname(_title) and any(_tname(x) for x in _prev[-7:])
+    check(not _bad, '«Имя. Суть»', 'повтор' if _bad else ('есть' if _tname(_title) else 'нет'), 'не чаще одного заголовка из восьми')
+    _bad = _tdef(_title) and any(_tdef(x) for x in _prev[-14:])
+    check(not _bad, 'Увечье в заголовке', 'повтор' if _bad else ('есть' if _tdef(_title) else 'нет'), 'не чаще одного заголовка из пятнадцати')
+_tw = len(re.findall(r'[А-Яа-яЁё-]+', re.sub(r'\.\s*Глава\s*\d+\s*$', '', _title)))
+_lo, _hi = (4, 7) if _tkind == 'действие' else ((2, 5) if _tkind else (1, 5))
+check(_lo <= _tw <= _hi, 'Слов в заголовке', _tw, f'{_lo}–{_hi}' + (f' (тест: {_tkind})' if _tkind else ''))
+# ТЕСТ-11: тестовый заголовок у рассказа, если у двух прошлых в таблице нет «тест:». Вид по очереди TITLE_KINDS.
+if _mynum and _mynum[0] >= TITLE_TEST_FROM and _mynum[1] != 2:
+    _tt, _col = {}, None
+    _tab = os.path.join(os.path.dirname(_me), '00_НАЧНИ-ОТСЮДА.md')
+    if os.path.exists(_tab):
+        for _line in open(_tab, encoding='utf-8'):
+            if not _line.startswith('|'): continue
+            _c = [x.strip() for x in _line.strip().strip('|').split('|')]
+            if 'Тип заголовка' in _c: _col = _c.index('Тип заголовка'); continue
+            if _c and _c[0] == '№': _col = None; continue
+            if _col is not None and re.fullmatch(r'\d+', _c[0]) and len(_c) > _col:
+                _tt[int(_c[0])] = _c[_col]
+    _done = [_tt[k] for k in sorted(_tt) if TITLE_TEST_FROM <= k < _mynum[0] and 'тест:' in _tt[k]]
+    _last2 = [_tt[k] for k in sorted(k for k in _tt if k < _mynum[0])][-2:]
+    _due = not any('тест:' in x for x in _last2)
+    if len(_done) >= len(TITLE_KINDS) * TITLE_PER_KIND:
+        print(f'OK        ТЕСТ-11: набран ({len(_done)} заголовков), ждём итога, обычные заголовки')
+        if _tkind: check(False, 'ТЕСТ-11', 'тест уже набран', 'вид заголовка не указывать')
+    else:
+        _next = TITLE_KINDS[len(_done) % len(TITLE_KINDS)]
+        if _tkind:
+            check(_tkind == _next, 'Вид тестового заголовка', _tkind, f'по очереди сейчас «{_next}»')
+            check(_due, 'Тестовый заголовок по очереди', 'да' if _due else 'тест был в одном из двух прошлых', 'один рассказ из трёх')
+        elif _mynum[1] == 1:
+            print('OK        ТЕСТ-11: две главы, тестовый заголовок переносится на следующий рассказ')
+        elif _due:
+            print(f'ПРОВЕРИТЬ ТЕСТ-11: этот рассказ тестовый, вид «{_next}», запуск с --заголовок {_next}. '
+                  'Если рассказ в другом тесте (ТЕСТ-10, продолжение С-04), тест переносится на следующий.')
+            _tsoft.append(f'тестовый заголовок «{_next}» (ТЕСТ-11)')
+
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
-      + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else ''))
+      + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else '')
+      + (('; проверить: ' + ', '.join(_tsoft)) if _tsoft else ''))

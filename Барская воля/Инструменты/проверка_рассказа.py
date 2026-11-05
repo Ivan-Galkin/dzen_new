@@ -315,6 +315,31 @@ if len(_pr) >= 2:
     print(f'{_mark}Одно место на картинках: {"паспорт места повторён или места разные" if not _same else len(_same)} (норма если место одно, его описание дословно одинаково во всех промтах)')
     for x in _same: print('    ', x)
 
+# Дословный повтор заголовка (с 07.11.2026, решение владельца 06.11): заголовок не должен совпадать
+# с заголовком любого рассказа во всех папках каналов. Похожие слова в соседних каналах можно.
+def _tnorm(s):
+    s = re.sub(r'\.\s*Глава\s*\d+\s*$', '', s.replace('**', '').strip().lstrip('#').strip())
+    return ' '.join(re.findall(r'[а-яa-z0-9]+', s.lower().replace('ё', 'е')))
+def _ttitle(fn):
+    try:
+        return open(fn, encoding='utf-8').readline().replace('**', '').strip().lstrip('#').strip()
+    except OSError:
+        return ''
+_title = open(path, encoding='utf-8').readline().replace('**', '').strip().lstrip('#').strip()
+_me = os.path.abspath(path)
+_mynum = _num(path)
+_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_dups = []
+for _f in glob.glob(os.path.join(_root, '*', 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md')):
+    _f = os.path.abspath(_f)
+    if _f == _me:
+        continue
+    if os.path.dirname(_f) == os.path.dirname(_me) and _mynum and _num(_f) and _num(_f)[0] == _mynum[0]:
+        continue  # другая глава той же истории
+    if _tnorm(_ttitle(_f)) == _tnorm(_title):
+        _dups.append(f'{os.path.basename(os.path.dirname(_f))}, {os.path.basename(_f).split("_")[0]}')
+check(not _dups, 'Заголовок уже был', 'нет' if not _dups else '; '.join(_dups), 'дословно не повторять ни в одном нашем канале')
+
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
       + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else ''))
