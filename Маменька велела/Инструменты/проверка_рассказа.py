@@ -340,6 +340,51 @@ for _f in glob.glob(os.path.join(_root, '*', 'Рассказ-*_ГОТОВО-К-�
         _dups.append(f'{os.path.basename(os.path.dirname(_f))}, {os.path.basename(_f).split("_")[0]}')
 check(not _dups, 'Заголовок уже был', 'нет' if not _dups else '; '.join(_dups), 'дословно не повторять ни в одном нашем канале')
 
+# Повторы в заголовках внутри канала (с 07.11.2026, решение владельца 06.11; Карта-заголовков.md, раздел «Повторы»).
+_TEND = ('ами', 'ями', 'ого', 'его', 'ому', 'ему', 'ыми', 'ими', 'ья', 'ье', 'ьи', 'ью', 'ая', 'яя', 'ое', 'ее', 'ые', 'ие',
+         'ый', 'ий', 'ой', 'ей', 'ом', 'ем', 'ах', 'ях', 'ам', 'ям', 'ов', 'ев', 'ую', 'юю',
+         'а', 'я', 'ы', 'и', 'у', 'ю', 'е', 'о', 'ь', 'й')
+_TSTOP = {'через', 'после', 'перед', 'между', 'около', 'возле', 'вместо', 'кроме', 'среди', 'против', 'чтобы', 'когда', 'тоже', 'себя', 'свой', 'своя', 'свою', 'своей'}
+# «Невеста» поднимает CTR (октябрь: Маменька 1,59, Свои 1,33, Кухня 1,29 медианы канала): можно один заголовок из трёх.
+_TFREE = {'невес'}
+_TSYN = {'мат': 'мать', 'матер': 'мать', 'доч': 'дочь', 'дочер': 'дочь', 'дочк': 'дочь', 'дочен': 'дочь'}
+def _tname(s): return bool(re.match(r'^[А-ЯЁ][а-яё]+\.\s', s))
+def _tstems(s):
+    s = re.sub(r'\.\s*Глава\s*\d+\s*$', '', s)
+    m = re.match(r'^[А-ЯЁ][а-яё]+\.\s+', s)
+    if m: s = s[m.end():]
+    out = {}
+    for w0 in re.findall(r'[а-яё]+', s.lower().replace('ё', 'е')):
+        if len(w0) < 4 or w0 in _TSTOP: continue
+        w = w0
+        for e in _TEND:
+            if w.endswith(e) and len(w) - len(e) >= 3:
+                w = w[:-len(e)]; break
+        w = w[:5]
+        out[_TSYN.get(w, w)] = w0
+    return out
+_TDEF = re.compile(r'хром|(^|\s)нем(ая|ой|ую|ого|ые)(\s|$)|глух|слеп|калек|безрук|безног|(^|\s)кос(ая|ой|ую)(\s|$)|(^|\s)крив(ая|ой|ую)(\s|$)'
+                   r'|горбат|горбун|(^|\s)ряб(ая|ой|ую)(\s|$)|поводыр|глазлив|увеч|одноглаз|косоглаз|заик|убог')
+def _tdef(s): return bool(_TDEF.search(s.lower().replace('ё', 'е')))
+if _mynum:
+    _prevt = {}
+    for _f in glob.glob(os.path.join(os.path.dirname(_me), 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md')):
+        _n = _num(_f)
+        if _n and _n[0] < _mynum[0] and (_n[0] not in _prevt or _n[1] < _prevt[_n[0]][0]):
+            _prevt[_n[0]] = (_n[1], _ttitle(_f))
+    _prev = [_prevt[k][1] for k in sorted(_prevt)][-14:]
+    _mine = _tstems(_title)
+    _hit = []
+    for _j, _p in enumerate(_prev[-6:]):
+        _near = _j >= len(_prev[-6:]) - 2
+        _same = sorted(_mine[k] for k in set(_mine) & set(_tstems(_p)) if _near or k not in _TFREE)
+        if _same: _hit.append(f'«{", ".join(_same)}» было в «{_p}»')
+    check(not _hit, 'Слово заголовка в шести прошлых', 'нет' if not _hit else '; '.join(_hit), 'главное слово не чаще одного заголовка из семи')
+    _bad = _tname(_title) and any(_tname(x) for x in _prev[-7:])
+    check(not _bad, '«Имя. Суть»', 'повтор' if _bad else ('есть' if _tname(_title) else 'нет'), 'не чаще одного заголовка из восьми')
+    _bad = _tdef(_title) and any(_tdef(x) for x in _prev[-14:])
+    check(not _bad, 'Увечье в заголовке', 'повтор' if _bad else ('есть' if _tdef(_title) else 'нет'), 'не чаще одного заголовка из пятнадцати')
+
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
       + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else ''))
