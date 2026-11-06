@@ -362,6 +362,20 @@ for _f in glob.glob(os.path.join(_root, '*', 'Рассказ-*_ГОТОВО-К-�
         _dups.append(f'{os.path.basename(os.path.dirname(_f))}, {os.path.basename(_f).split("_")[0]}')
 check(not _dups, 'Заголовок уже был', 'нет' if not _dups else '; '.join(_dups), 'дословно не повторять ни в одном нашем канале')
 
+# Числа (с 06.11.2026, Логика_повествования.md, Л20): модуль проверка_чисел.py рядом с этим скриптом
+_chisla = []
+try:
+    import importlib.util as _ilu
+    _sp = _ilu.spec_from_file_location('proverka_chisel', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'проверка_чисел.py'))
+    _cm = _ilu.module_from_spec(_sp); _sp.loader.exec_module(_cm)
+    _ch, _chisla = _cm.report(paras)
+    check(not _ch, 'Числа (Л20)', '; '.join(_ch) if _ch else 'строк на сверку: ' + str(len(_chisla)), 'скрипт текст не меняет: каждую строку ПРОВЕРИТЬ сверить; если число верно по сюжету или это другой человек, оставить')
+    for _x in _chisla:
+        print('ПРОВЕРИТЬ Числа (Л20):', _x)
+except FileNotFoundError:
+    print('ПРОВЕРИТЬ Числа (Л20): нет файла проверка_чисел.py рядом со скриптом')
+
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
+      + ((f'; проверить: числа (Л20), строк выше: {len(_chisla)}' + (', одна похожа на ошибку' if any(x.startswith('ПОХОЖЕ') for x in _chisla) else '')) if _chisla else '')
       + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else ''))
