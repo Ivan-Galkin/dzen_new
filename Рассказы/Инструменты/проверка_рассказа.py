@@ -433,7 +433,21 @@ if _mynum and _mynum[0] >= TITLE_TEST_FROM and _mynum[1] != 2:
                   'Если рассказ в другом тесте (ТЕСТ-10, продолжение С-04), тест переносится на следующий.')
             _tsoft.append(f'тестовый заголовок «{_next}» (ТЕСТ-11)')
 
+# Числа (с 06.11.2026, Логика_повествования.md, Л20): модуль проверка_чисел.py рядом с этим скриптом
+_chisla = []
+try:
+    import importlib.util as _ilu
+    _sp = _ilu.spec_from_file_location('proverka_chisel', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'проверка_чисел.py'))
+    _cm = _ilu.module_from_spec(_sp); _sp.loader.exec_module(_cm)
+    _ch, _chisla = _cm.report(paras)
+    check(not _ch, 'Числа (Л20)', '; '.join(_ch) if _ch else 'невозможных нет', 'пальцев не больше десяти; части в сумме дают целое')
+    for _x in _chisla:
+        print('ПРОВЕРИТЬ Числа (Л20):', _x)
+except FileNotFoundError:
+    print('ПРОВЕРИТЬ Числа (Л20): нет файла проверка_чисел.py рядом со скриптом')
+
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
+      + ((f'; проверить: числа (Л20), строк выше: {len(_chisla)}') if _chisla else '')
       + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else '')
       + (('; проверить: ' + ', '.join(_tsoft)) if _tsoft else ''))
