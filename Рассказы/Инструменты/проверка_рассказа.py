@@ -449,6 +449,34 @@ try:
 except FileNotFoundError:
     print('ПРОВЕРИТЬ Числа (Л20): нет файла проверка_чисел.py рядом со скриптом')
 
+# Разделители частей (с 07.11.2026, решение владельца): только настоящие швы, по минимуму.
+_sl, _inb = [], False
+for _l in open(path, encoding='utf-8').read().replace(r'\*\*\*', '***').split('\n'):
+    if _l.strip().startswith('```'):
+        _inb = not _inb
+        continue
+    if _inb or not _l.strip():
+        continue
+    _sl.append(_l.strip())
+_sb = [x for x in _sl[1:] if not x.startswith(('**[', 'Подпись:', 'Спасибо, что дочитали', 'Продолжение истории', 'Начало истории', 'А рецепт', 'Это первая'))]
+_stot = sum(len(x) for x in _sb if x != '***')
+_sk = sum(1 for x in _sb if x == '***')
+_scap = 1 if _stot < 12000 else 2 if _stot < 15000 else 3 if _stot < 25000 else 4
+if form in ('линии', 'перебивка', 'хроника'):
+    _scap = min(4, _scap + 1)
+check(_sk <= _scap, 'Разделителей частей', _sk, f'не больше {_scap}: деление длинного рассказа, смена линии, большой скачок времени; сцена внутри части без разделителя')
+_sp, _sc = [], 0
+for x in _sb:
+    if x == '***':
+        _sp.append(_sc); _sc = 0
+    else:
+        _sc += len(x)
+_sp.append(_sc)
+_sshort = [p for p in _sp[:-1] if p < 3000] + ([_sp[-1]] if len(_sp) > 1 and _sp[-1] < 800 else [])
+check(not _sshort, 'Кусок между разделителями', 'от 3 000 знаков' if not _sshort else f'короткие: {_sshort}', 'от 3 000 знаков, последний кусок «через годы» от 800')
+if _stot < 12000 and _sk == 1 and _sp[-1] > 3500:
+    print('ПРОВЕРИТЬ Разделитель в коротком рассказе: допустим только перед финалом «через годы»')
+
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
       + ((f'; проверить: числа (Л20), строк выше: {len(_chisla)}' + (', одна похожа на ошибку' if any(x.startswith('ПОХОЖЕ') for x in _chisla) else '')) if _chisla else '')
