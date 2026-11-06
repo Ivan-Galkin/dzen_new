@@ -13,7 +13,7 @@ t2 = re.sub(r'```.*?```', '', t2, flags=re.S)
 t2 = re.sub(r'Подпись: Изображение создано ИИ', '', t2)
 lines = [l.strip() for l in t2.split('\n') if l.strip()]
 body = [l for l in lines[1:] if not l.startswith('Спасибо, что дочитали')]
-paras = [l for l in body if l not in ('***', 'ЭПИЛОГ')]
+paras = [l for l in body if l not in ('***', r'\*\*\*', 'ЭПИЛОГ')]
 text = '\n'.join(paras)
 
 print('Знаков:', len(text))

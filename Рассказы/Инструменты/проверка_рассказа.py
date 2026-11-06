@@ -31,6 +31,9 @@ if form not in FORMS:
 P = FORMS[form]
 print(f'Форма: {form} ({P["name"]})' + ('; глава' if chapter else ''))
 t = open(path, encoding='utf-8').read()
+# Разделитель частей (с 06.11.2026): в файле пишется \*\*\*, чтобы при копировании из просмотра Markdown остались звёздочки
+_bare = sum(1 for l in t.split('\n') if l.strip() == '***')
+t = '\n'.join('***' if l.strip() == r'\*\*\*' else l for l in t.split('\n'))
 
 t2 = re.sub(r'\*\*\[.*?\]\*\*', '', t)
 t2 = re.sub(r'```.*?```', '', t2, flags=re.S)
@@ -55,6 +58,8 @@ def check(ok, label, value, norm):
     print(f'{mark}{label}: {value} (норма {norm})')
     if not ok:
         problems.append(label)
+
+check(_bare == 0, 'Разделитель частей', 'записан как \\*\\*\\*' if _bare == 0 else f'голых *** строк: {_bare}', 'в файле \\*\\*\\*, иначе при копировании из просмотра звёздочки пропадут')
 
 n = len(text)
 lo, hi = (8500, 12000) if chapter else (P['lo'], P['hi'])
@@ -130,7 +135,7 @@ def _paras(txt):
     x = re.sub(r'```.*?```', '', x, flags=re.S)
     x = x.replace('Подпись: Изображение создано ИИ', '').replace('**', '')
     ls = [l.strip() for l in x.split('\n') if l.strip()]
-    return [l for l in ls[1:] if not l.startswith(service) and l not in ('***', 'ЭПИЛОГ')]
+    return [l for l in ls[1:] if not l.startswith(service) and l not in ('***', r'\*\*\*', 'ЭПИЛОГ')]
 _RELIC = re.compile(r'до сих пор|так и (висит|висят|лежит|лежат|стоит|хранится)|хранит|хранится|берегла|бережёт|висит у|висят у|лежит у|лежат у|под стеклом|в рамке', re.I)
 def _bylo(p): return bool(re.search(r'(^|[\s«])Было это', ' '.join(p[:8])))
 def _relic(p): return bool(p) and bool(_RELIC.search(p[-1]))
