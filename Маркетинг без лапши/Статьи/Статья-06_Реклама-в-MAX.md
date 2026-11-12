@@ -1,5 +1,11 @@
 # Реклама в MAX: как запустить через Директ и VK Рекламу и кому она подойдёт
 
+**Обложка.** Надпись: «Реклама в MAX».
+
+```
+Stylized 3D illustration, 16:9. The character from the reference image (a friendly marketer in his late thirties) stands slightly right of center looking at a large smartphone showing a generic messenger channel feed, with a small highlighted ad card placed after a post. Two small control panels float near him, symbolizing two ad dashboards. Clean minimal background in turquoise and white, bright orange accent on the ad card. Empty calm area on the left third of the frame for a caption. No text, no letters, no logos, no brand names. Soft studio lighting, high detail.
+```
+
 В октябре в мессенджере MAX появилась реклама в каналах. Запустить её можно из двух привычных кабинетов: VK Рекламы и Яндекс Директа. Разберу, где показывается реклама в MAX, чем отличаются два кабинета и стоит ли бизнесу пробовать её сейчас.
 
 ## Где показывается реклама
