@@ -310,6 +310,9 @@ def _found(names, patronymic=False):
     return out
 _heavy = _found(HEAVY, patronymic=True)
 check(not _heavy, 'Тяжёлые имена', 'нет' if not _heavy else ', '.join(_heavy), 'заменить простым именем поколения: СТИЛЬ.md, «Имена по эпохе»')
+# Сниженная лексика Дзена (с 20.11.2026, решение владельца): имя «Параша» и «параша» в тексте ограничивают показ
+_parasha = re.findall(r'(?<![А-Яа-яЁё])[Пп]араш[а-яё]*', text)
+check(not _parasha, 'Имя «Параша»', 'нет' if not _parasha else f'{len(_parasha)} раз', 'не брать: Дзен ставит «Сниженная лексика» и показывает только подписчикам; полное «Прасковья» или другое имя')
 _rare = _found(RARE)
 check(len(_rare) <= RARE_MAX, 'Редких имён', f'{len(_rare)}' + (f' ({", ".join(_rare)})' if _rare else ''), f'не больше {RARE_MAX} на рассказ')
 
