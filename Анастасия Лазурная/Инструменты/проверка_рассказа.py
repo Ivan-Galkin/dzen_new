@@ -70,6 +70,12 @@ def check(ok, label, value, norm):
     if not ok:
         problems.append(label)
 
+# Общие редакционные риски (24.11.2026); модуль обязателен.
+from pathlib import Path as _RiskPath
+sys.path.insert(0, str(_RiskPath(__file__).resolve().parents[2] / 'Инструменты_общие'))
+from проверка_редакционных_рисков import apply as _apply_editorial_risks
+_editorial_manual = _apply_editorial_risks(check, lines[0] if lines else '', text)
+
 n = len(text)
 lo, hi = (12000, 16000) if chapter else (P['lo'], P['hi'])
 pl, ph = (80, 140) if chapter else P['paras']
@@ -430,6 +436,7 @@ else:
 
 print()
 print('ИТОГ:', ('всё в норме' if not problems else 'исправить: ' + ', '.join(problems))
+      + ('; проверить: ' + '; '.join(_editorial_manual) if _editorial_manual else '')
       + ('; проверить: роль в заголовке (Л10)' if _role else '')
       + ((f'; проверить: числа (Л20), строк выше: {len(_chisla)}' + (', одна похожа на ошибку' if any(x.startswith('ПОХОЖЕ') for x in _chisla) else '')) if _chisla else '')
       + ('; проверить: напоминание о вернувшемся герое (Л14)' if _late else ''))
