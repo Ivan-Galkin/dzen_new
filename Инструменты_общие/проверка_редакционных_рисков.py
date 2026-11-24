@@ -1,7 +1,7 @@
 # Общая проверка редакционных рисков новых рассказов, 24.11.2026.
 # Приближённая проверка, не официальный фильтр Дзена.
 import re
-from math import ceil
+
 
 _HARD = re.compile(
     r'\b(?:смерт[а-яё]*|умер(?:еть|ла|ло|ли|ш[а-яё]+)?|умира[а-яё]*|'
@@ -29,7 +29,7 @@ _NUM = re.compile(
     r'(?:перв|втор|трет|четверт|пят|шест|седьм|восьм|девят|десят|сороков|'
     r'пятидесят|шестидесят|семидесят|восьмидесят|девяност|сот|двухсот|трехсот|четырехсот|тысячн)'
     r'(?:ый|ой|ий|ая|ья|ое|ье|ые|ьи|ого|ьего|ей|ому|ьему|ым|им|ом|ьем|ых|ьих|ыми|ьими|ую|ью))$')
-_TOKEN = re.compile(r'\d+(?:[.,]\d+)?|[а-яё]+|[^\s]', re.I)
+_TOKEN = re.compile(r'\d{1,2}[./-]\d{1,2}[./-]\d{2,4}(?!\d)|\d{4}-\d{2}-\d{2}(?!\d)|\d{1,2}:\d{2}(?!\d)|\d+(?:[.,]\d+)?|[а-яё]+|[^\s]', re.I)
 
 def number_expressions(value):
     """Приближённый счёт: соседние числительные образуют одно выражение."""
@@ -47,6 +47,22 @@ def number_expressions(value):
     if start is not None:
         result.append(value[start:end])
     return result
+
+# (верхняя граница объёма, нижняя/верхняя идеала, нижняя/верхняя порога).
+# Порог свыше 9000 не масштабируется: источник от 25.11.2026.
+_NUMBER_BANDS = (
+    (3000, 8, 12, 20, 25),
+    (5000, 12, 18, 35, 40),
+    (7000, 15, 22, 45, 50),
+    (9000, 20, 28, 55, 60),
+    (float('inf'), 25, 35, 65, 75),
+)
+
+def number_limits(length):
+    """Возвращает идеальный диапазон и диапазон допустимого порога."""
+    for upper, ideal_lo, ideal_hi, limit_lo, limit_hi in _NUMBER_BANDS:
+        if length <= upper:
+            return ideal_lo, ideal_hi, limit_lo, limit_hi
 
 def _locations(pattern, value, label):
     for i, line in enumerate(value.splitlines(), 1):
@@ -77,10 +93,13 @@ def apply(check, title, body):
     if stamp:
         _locations(_STAMP, body, 'ИСПРАВИТЬ штамп')
     count = sum(len(number_expressions(p)) for p in body.splitlines())
-    limit = ceil(len(body) * 6 / 1000)
-    print(f'{"ПРОВЕРИТЬ" if count > limit else "OK        "} Числовая нагрузка: {count}, ориентир {limit} на {len(body)} знаков (6 на 1000)')
-    if count > limit:
-        manual.append('лишние числа: убрать или обосновать')
+    length = len(body.replace('\n', ' '))
+    ideal_lo, ideal_hi, limit_lo, limit = number_limits(length)
+    norm = f'идеал {ideal_lo}–{ideal_hi}; порог {limit_lo}–{limit}; {length} знаков'
+    check(count <= limit, 'Числовая нагрузка', count, norm)
+    if count > ideal_hi:
+        print(f'ПРОВЕРИТЬ Числовая нагрузка: {count}, выше идеального максимума {ideal_hi}; убрать лишние числа')
+        manual.append('лишние числа: убрать или обосновать; сверх порога согласовать с владельцем')
         for i, p in enumerate(body.splitlines(), 1):
             nums = number_expressions(p)
             if nums:
@@ -95,4 +114,11 @@ if __name__ == '__main__':
     assert _STAMP.search('Секунды тянулись как часы.')
     assert number_expressions('В тысяча восемьсот сороковом году было 120 рублей и три сына.') == ['тысяча восемьсот сороковом', '120', 'три']
     assert not number_expressions('Пятно на этой странице')
+    for length, expected in ((0, 25), (3000, 25), (3001, 40), (5000, 40),
+                             (5001, 50), (7000, 50), (7001, 60), (9000, 60),
+                             (9001, 75), (25000, 75), (32000, 75)):
+        assert number_limits(length)[3] == expected
+    assert number_limits(25000) == (25, 35, 65, 75)
+    assert number_expressions('В октябре тридцать седьмого, зимой сорок третьего.') == ['тридцать седьмого', 'сорок третьего']
+    assert number_expressions('тысяча восемьсот шестьдесят четвёртого, девять лет, сорок две копейки') == ['тысяча восемьсот шестьдесят четвёртого', 'девять', 'сорок две']
     print('Самопроверка редакционных рисков: OK')
