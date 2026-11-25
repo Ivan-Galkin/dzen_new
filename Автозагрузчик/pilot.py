@@ -8,7 +8,7 @@ import time
 from contextlib import closing
 from pathlib import Path
 
-from playwright.sync_api import expect, sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeout, expect, sync_playwright
 
 from main import MODULE, lock, save
 from parser import parse
@@ -29,9 +29,20 @@ BLOCK = ".public-DraftStyleDefault-block"
 def editors(page, url):
     if page.url != url:
         raise ValueError("Адрес изменился. Проверьте канал, вход и адрес черновика.")
-    expect(page.get_by_text(NAME, exact=True).filter(visible=True).first).to_be_visible()
+    channel = page.get_by_text(NAME, exact=True).filter(visible=True).first
+    try:
+        expect(channel).to_be_visible(timeout=30000)
+    except AssertionError:
+        input("Название канала пока не видно. Проверьте вход и загрузку страницы в браузере. Когда увидите «Барская воля», нажмите Enter здесь: ")
+        expect(channel).to_be_visible(timeout=30000)
+    if page.url != url:
+        raise ValueError("После загрузки изменился адрес черновика")
     fields = page.locator('[contenteditable="true"]:visible').filter(has=page.locator(BLOCK))
-    expect(fields).to_have_count(2)
+    expect(fields).to_have_count(2, timeout=30000)
+    overlay = page.locator('.ReactModal__Overlay[class*="help-popup"]:visible')
+    if overlay.count():
+        input("В редакторе открыта подсказка Дзена. Закройте её в браузере и нажмите Enter здесь: ")
+        expect(overlay).to_have_count(0, timeout=30000)
     first, second = fields.nth(0), fields.nth(1)
     if first.bounding_box()["y"] >= second.bounding_box()["y"]:
         raise ValueError("Не удалось определить порядок полей")
@@ -40,6 +51,15 @@ def editors(page, url):
 
 def paragraphs(field):
     return [s.replace("\xa0", " ").strip() for s in field.locator(BLOCK).all_inner_texts()]
+
+
+def click_field(page, url, index):
+    field = editors(page, url)[index]
+    try:
+        field.click(timeout=5000)
+    except PlaywrightTimeout:
+        # A first-visit help popup can appear after the initial editor check.
+        editors(page, url)[index].click(timeout=15000)
 
 
 def fill_and_check(page, url, article, resume, reserve):
@@ -53,17 +73,21 @@ def fill_and_check(page, url, article, resume, reserve):
     }""", article.html())
     if not expected:
         raise ValueError("Пустой рассказ")
-    if not resume:
+    if resume:
+        page.reload(wait_until="domcontentloaded")
+        title, body = editors(page, url)
+    if not resume or not any(paragraphs(title) + paragraphs(body)):
         if any(paragraphs(title) + paragraphs(body)):
             raise ValueError("Выбранный черновик уже содержит текст")
-        reserve()
-        title.click()
+        if not resume:
+            reserve()
+        click_field(page, url, 0)
         page.keyboard.insert_text(article.title)
         expect(title).to_have_text(article.title)
         _, body = editors(page, url)
         if any(paragraphs(body)):
             raise ValueError("Поле текста уже заполнено")
-        body.click()
+        click_field(page, url, 1)
         # Use the editor's paste handler; never overwrite its DOM.
         body.evaluate("""(el, data) => {
             if (!el.contains(document.activeElement)) throw Error('Фокус вне текста');

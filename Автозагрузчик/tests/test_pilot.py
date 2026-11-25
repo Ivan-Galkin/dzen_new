@@ -36,6 +36,8 @@ class PilotTest(unittest.TestCase):
             reserve = Mock()
             fill_and_check(page, url, article, False, reserve)
             fill_and_check(page, url, article, True, reserve)
+            page.evaluate("sessionStorage.clear()")
+            fill_and_check(page, url, article, True, reserve)
             with self.assertRaisesRegex(ValueError, "уже содержит"):
                 fill_and_check(page, url, article, False, reserve)
             reserve.assert_called_once()
