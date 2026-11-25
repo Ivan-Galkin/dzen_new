@@ -140,15 +140,42 @@ def pilot(state):
             context = pw.chromium.launch_persistent_context(str(state / "profiles" / channel["profile"]),
                                                            headless=False, locale="ru-RU")
             try:
-                page = context.new_page()
+                page = context.pages[0] if context.pages else context.new_page()
+                page.bring_to_front()
+                response = page.goto(LIST, wait_until="domcontentloaded", timeout=60000)
+                if response and response.status >= 400:
+                    raise ValueError(f"Страница публикаций вернула HTTP {response.status}")
+                expect(page.get_by_text(NAME, exact=True).filter(visible=True).first).to_be_visible(timeout=60000)
                 if not resume:
-                    page.goto(LIST, wait_until="domcontentloaded")
-                    expect(page.get_by_text(NAME, exact=True).filter(visible=True).first).to_be_visible()
                     print("Первичная сверка № 58. Проверьте название и начало текста в опубликованных, "
                           "ожидающих и черновиках. Начало:", article.body.splitlines()[0])
                     if input("Если рассказ уже есть, закройте программу. Если его нет, введите 58: ").strip() != NUMBER:
                         raise ValueError("Первичная сверка отменена")
-                page.goto(url, wait_until="domcontentloaded")
+                    page.goto(url, wait_until="domcontentloaded")
+                else:
+                    page.get_by_text(re.compile(r"^Черновики(?:\s*\d+)?$")).filter(visible=True).click()
+                    print("Открыт список черновиков Барской воли. Откройте из списка черновик для № 58.")
+                    print("Если список пуст, проверьте опубликованные и ожидающие материалы. Если № 58 нигде нет,"
+                          " откройте новый пустой редактор через «+» → «Написать статью». Для выхода введите 0.")
+                    if input("Когда откроются поля редактора, нажмите Enter здесь: ").strip():
+                        raise ValueError("Восстановление остановлено владельцем")
+                    candidates = [p for p in context.pages if EDITOR.fullmatch(p.url)]
+                    if len(candidates) != 1:
+                        raise ValueError("Нужна одна открытая вкладка редактора Барской воли")
+                    page, = candidates
+                    page.bring_to_front()
+                    if page.url != url:
+                        title_field, body_field = editors(page, page.url)
+                        if any(paragraphs(title_field) + paragraphs(body_field)):
+                            raise ValueError("Другой черновик уже содержит текст")
+                        print("Открыт пустой черновик с другим адресом. Проверьте по спискам канала,"
+                              " что рассказ № 58 ещё не загружен.")
+                        if input("Чтобы использовать именно этот пустой черновик для № 58, введите 58: ").strip() != NUMBER:
+                            raise ValueError("Замена адреса отменена")
+                        with journal.db:
+                            journal.db.execute("UPDATE publications SET draft_url=? WHERE channel=? AND number=? "
+                                               "AND status='pending' AND draft_url=?", (page.url, CHANNEL, NUMBER, url))
+                        url = page.url
 
                 def reserve():
                     with journal.db:
