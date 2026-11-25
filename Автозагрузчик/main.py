@@ -83,7 +83,10 @@ def diagnose(root, channels, state, journal, revision):
                 logging.exception("Материал %s/%s", cid, item.number)
         summary = (f"{channel['name']} — в источнике {len(items)}, подтверждено новых 0, "
                    f"создано 0, дубли {counts['дубли']}, проверить {counts['проверить']}, ошибки {counts['ошибки']}")
-        report.extend([summary, *lines, ""])
+        report.append(summary)
+        if channel.get("studio_url"):
+            report.append("Адрес Студии для сверки: " + channel["studio_url"])
+        report.extend([*lines, ""])
         print(summary)
         errors += counts["ошибки"]
     save(state / "last-report.txt", "\n".join(report))
@@ -106,6 +109,11 @@ def main():
         config = state / "config.json"
         channels = json.loads((config if config.exists() else MODULE / "config.example.json")
                               .read_text(encoding="utf-8-sig"))["channels"]
+        defaults = json.loads((MODULE / "config.example.json").read_text(encoding="utf-8-sig"))
+        urls = {c["id"]: c["studio_url"] for c in defaults["channels"] if c.get("studio_url")}
+        for channel in channels:
+            if channel["id"] in urls:
+                channel.setdefault("studio_url", urls[channel["id"]])
         ids = [c["id"] for c in channels]
         if len(set(ids)) != len(ids) or not all(re.fullmatch(r"[a-z0-9_-]+", cid) for cid in ids):
             raise ValueError("Идентификаторы каналов должны быть уникальными")
