@@ -422,7 +422,8 @@ _tw = len(re.findall(r'[А-Яа-яЁё-]+', re.sub(r'\.\s*Глава\s*\d+\s*$',
 _lo, _hi = (4, 7) if _tkind == 'действие' else ((2, 5) if _tkind else (1, 5))
 check(_lo <= _tw <= _hi, 'Слов в заголовке', _tw, f'{_lo}–{_hi}' + (f' (тест: {_tkind})' if _tkind else ''))
 # ТЕСТ-11: тестовый заголовок у рассказа, если у двух прошлых в таблице нет «тест:». Вид по очереди TITLE_KINDS.
-if _mynum and _mynum[0] >= TITLE_TEST_FROM and _mynum[1] != 2:
+# ТЕСТ-11 закрыт 25.11.2026 (разбор 25.11): очередь тестовых заголовков не проверяется, флаг --заголовок только для длины вида «действие» и «срок»
+if False and _mynum and _mynum[0] >= TITLE_TEST_FROM and _mynum[1] != 2:
     _tt, _col = {}, None
     _tab = os.path.join(os.path.dirname(_me), '00_НАЧНИ-ОТСЮДА.md')
     if os.path.exists(_tab):
