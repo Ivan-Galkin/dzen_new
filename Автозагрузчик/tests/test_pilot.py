@@ -1,4 +1,6 @@
+import os
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from playwright.sync_api import sync_playwright
@@ -24,13 +26,15 @@ class PilotTest(unittest.TestCase):
         <script>
         const [title,body]=document.querySelectorAll('[contenteditable]');
         title.oninput=()=>sessionStorage.title=title.innerHTML;
-        body.onpaste=e=>{
+        body.oninput=()=>sessionStorage.body=body.innerHTML;
+        body.onkeydown=e=>{
+          if(e.key!=='Enter')return;
           e.preventDefault();
-          const doc=new DOMParser().parseFromString(e.clipboardData.getData('text/html'),'text/html');
-          body.replaceChildren(...[...doc.body.children].map(p=>{
-            p.className='public-DraftStyleDefault-block';return p;
-          }));
-          sessionStorage.body=body.innerHTML;
+          const p=document.createElement('div');
+          p.className='public-DraftStyleDefault-block';
+          p.append(document.createElement('br'));body.append(p);
+          const range=document.createRange();range.setStart(p,0);range.collapse(true);
+          const sel=getSelection();sel.removeAllRanges();sel.addRange(range);
         };
         if(sessionStorage.title)title.innerHTML=sessionStorage.title;
         if(sessionStorage.body)body.innerHTML=sessionStorage.body;
@@ -41,9 +45,13 @@ class PilotTest(unittest.TestCase):
             url = "http://localhost/fixture"
             page.route("**/*", lambda route: route.fulfill(content_type="text/html; charset=utf-8", body=html))
             page.goto(url)
-            article = parse("Заголовок\n\nПервый абзац.\n\n— Диалог.")
+            root = Path(os.environ.get("DZEN_TEST_SOURCE", Path(__file__).resolve().parents[2]))
+            story = root / "Барская воля" / "Рассказ-58_ГОТОВО-К-ВСТАВКЕ.md"
+            article = parse(story.read_text(encoding="utf-8-sig"))
             reserve = Mock()
             fill_and_check(page, url, article, False, reserve)
+            fill_and_check(page, url, article, True, reserve)
+            page.evaluate("sessionStorage.removeItem('body')")
             fill_and_check(page, url, article, True, reserve)
             page.evaluate("sessionStorage.clear()")
             fill_and_check(page, url, article, True, reserve)

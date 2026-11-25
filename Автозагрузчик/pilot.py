@@ -107,28 +107,33 @@ def fill_and_check(page, url, article, resume, reserve):
     if resume:
         page.reload(wait_until="domcontentloaded")
         title, body = editors(page, url)
-    if not resume or not any(paragraphs(title) + paragraphs(body)):
-        if any(paragraphs(title) + paragraphs(body)):
+    current_title = paragraphs(title)
+    empty_body = not any(paragraphs(body))
+    if not resume or (empty_body and (not any(current_title) or current_title == [article.title])):
+        if not empty_body or (any(current_title) and not resume):
             raise ValueError("Выбранный черновик уже содержит текст")
         if not resume:
             reserve()
-        click_field(page, url, 0)
-        page.keyboard.insert_text(article.title)
+        if not any(current_title):
+            click_field(page, url, 0)
+            page.keyboard.insert_text(article.title)
         expect(title).to_have_text(article.title)
         _, body = editors(page, url)
         if any(paragraphs(body)):
             raise ValueError("Поле текста уже заполнено")
         click_field(page, url, 1)
-        # Use the editor's paste handler; never overwrite its DOM.
-        body.evaluate("""(el, data) => {
-            if (!el.contains(document.activeElement)) throw Error('Фокус вне текста');
-            const clip = new DataTransfer();
-            clip.setData('text/plain', data.plain);
-            clip.setData('text/html', data.html);
-            el.dispatchEvent(new ClipboardEvent('paste', {clipboardData:clip, bubbles:true, cancelable:true}));
-        }""", {"html": article.html(), "plain": "\n\n".join(expected)})
+        # This pilot accepts plain paragraphs only (validated above). Use native
+        # editor input and verify each new block before advancing to the next.
+        for index, paragraph in enumerate(expected):
+            if page.url != url or not body.evaluate("el => el.contains(document.activeElement)"):
+                raise ValueError("Редактор потерял фокус. Ввод остановлен.")
+            if index:
+                page.keyboard.press("Enter")
+                expect(body.locator(BLOCK)).to_have_count(index + 1, timeout=10000)
+            page.keyboard.insert_text(paragraph)
+            expect(body.locator(BLOCK).nth(index)).to_have_text(paragraph, timeout=10000)
         if paragraphs(body) != expected:
-            raise ValueError("Редактор не подтвердил вставку всех абзацев")
+            raise ValueError("Текст отличается от исходника после ввода")
         expect(page.get_by_text(re.compile(r"^Сохранено(?:\s|$)")).filter(visible=True).first).to_be_visible(timeout=45000)
         page.wait_for_timeout(2500)
     # Only read after a crash. Never paste into an unverified/partial draft again.
@@ -220,6 +225,11 @@ def pilot(state):
                 journal.verified(CHANNEL, NUMBER, url)
                 save(state / "pilot-result.txt", f"Проверен черновик № 58\n{TITLE}\n{url}")
                 print("Черновик № 58 сохранён. Заголовок и все абзацы проверены:", url)
+            except Exception as exc:
+                logging.exception("Ошибка работы с редактором № 58")
+                print("Остановлено:", exc)
+                input("Браузер оставлен открытым. Нажмите Enter здесь, когда будете готовы закрыть его: ")
+                raise
             finally:
                 context.close()
 
