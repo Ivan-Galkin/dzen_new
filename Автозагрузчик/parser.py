@@ -25,7 +25,7 @@ class Article:
                                       extras=["tables", "fenced-code-blocks", "break-on-newline"]))
 
 
-def parse(raw):
+def parse(raw, *, keep_prompts=False):
     boundary = re.search(r"(?m)^(?:={5,}\n)?(?:## )?НИЖЕ В ПУБЛИКАЦИЮ НЕ ИДЁТ\b", raw)
     appendix = raw[boundary.start():] if boundary else ""
     lines = (raw[:boundary.start()] if boundary else raw).lstrip("\ufeff").strip().splitlines()
@@ -36,7 +36,7 @@ def parse(raw):
         title = title[2:-2]
     if title in ("", "---") or title.startswith(("<!--", "[")):
         raise ValueError("Проверьте заголовок и метаданные")
-    body, images = [], []
+    body, images, positions = [], [], []
     i = 0
     fence = None
 
@@ -94,6 +94,7 @@ def parse(raw):
             end = lines.index(chr(96)*3, start+1)
             image["alternative_prompt"] = "\n".join(lines[start+1:end])
             i = end+1
+        positions.append(len(body))
         images.append(image)
     if fence:
         raise ValueError("Незакрытый блок кода")
@@ -111,6 +112,17 @@ def parse(raw):
         # Historical appendices also contain provenance and alternative pictures.
         if images:
             images[0]["source_notes"] = appendix
+    if keep_prompts:
+        for at, image in reversed(list(zip(positions, images))):
+            marker = image["marker"].removeprefix("**").removesuffix("**")
+            fields = [marker]
+            if not INLINE.fullmatch(marker):
+                fields.append(image["prompt"])
+            fields.extend(image.get(key, "") for key in ("alternative_prompt", "source", "caption"))
+            # Keep each prompt line independently selectable and literal in Markdown.
+            paragraphs = [re.sub(r"([\\`*_{}\[\]()#+.!|<>~-])", r"\\\1", line)
+                          for field in fields for line in field.splitlines() if line.strip()]
+            body[at:at] = ["", "\n\n".join(paragraphs), ""]
     content = "\n".join(body).strip()
     if not content:
         raise ValueError("Нет основного текста")

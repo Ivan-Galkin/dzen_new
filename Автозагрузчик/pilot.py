@@ -57,14 +57,18 @@ def select_draft(context, page):
         print(f"Подходящих вкладок: {len(matches)}. Скопируйте ссылку открытого черновика и вставьте в консоль.")
 
 
-def editors(page, url):
+def channel_label(name):
+    return re.compile("^" + re.escape(name.rstrip(".")) + r"(?:\.|\s*[|]\s*.+)?$")
+
+
+def editors(page, url, name=NAME):
     if page.url != url:
         raise ValueError("Адрес изменился. Проверьте канал, вход и адрес черновика.")
-    channel = page.get_by_text(NAME, exact=True).filter(visible=True).first
+    channel = page.get_by_text(channel_label(name)).filter(visible=True).first
     try:
         expect(channel).to_be_visible(timeout=30000)
     except AssertionError:
-        input("Название канала пока не видно. Проверьте вход и загрузку страницы в браузере. Когда увидите «Барская воля», нажмите Enter здесь: ")
+        input(f"Название канала пока не видно. Проверьте вход и загрузку страницы в браузере. Когда увидите «{name}», нажмите Enter здесь: ")
         expect(channel).to_be_visible(timeout=30000)
     if page.url != url:
         raise ValueError("После загрузки изменился адрес черновика")
@@ -84,17 +88,17 @@ def paragraphs(field):
     return [s.replace("\xa0", " ").strip() for s in field.locator(BLOCK).all_inner_texts()]
 
 
-def click_field(page, url, index):
-    field = editors(page, url)[index]
+def click_field(page, url, index, name=NAME):
+    field = editors(page, url, name)[index]
     try:
         field.click(timeout=5000)
     except PlaywrightTimeout:
         # A first-visit help popup can appear after the initial editor check.
-        editors(page, url)[index].click(timeout=15000)
+        editors(page, url, name)[index].click(timeout=15000)
 
 
-def fill_and_check(page, url, article, resume, reserve):
-    title, body = editors(page, url)
+def fill_and_check(page, url, article, resume, reserve, name=NAME):
+    title, body = editors(page, url, name)
     expected = page.evaluate("""html => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
         return [...doc.body.children].map(p => {
@@ -106,7 +110,7 @@ def fill_and_check(page, url, article, resume, reserve):
         raise ValueError("Пустой рассказ")
     if resume:
         page.reload(wait_until="domcontentloaded")
-        title, body = editors(page, url)
+        title, body = editors(page, url, name)
     current_title = paragraphs(title)
     empty_body = not any(paragraphs(body))
     if not resume or (empty_body and (not any(current_title) or current_title == [article.title])):
@@ -115,13 +119,13 @@ def fill_and_check(page, url, article, resume, reserve):
         if not resume:
             reserve()
         if not any(current_title):
-            click_field(page, url, 0)
+            click_field(page, url, 0, name)
             page.keyboard.insert_text(article.title)
         expect(title).to_have_text(article.title)
-        _, body = editors(page, url)
+        _, body = editors(page, url, name)
         if any(paragraphs(body)):
             raise ValueError("Поле текста уже заполнено")
-        click_field(page, url, 1)
+        click_field(page, url, 1, name)
         # This pilot accepts plain paragraphs only (validated above). Use native
         # editor input and verify each new block before advancing to the next.
         for index, paragraph in enumerate(expected):
@@ -139,7 +143,7 @@ def fill_and_check(page, url, article, resume, reserve):
     # Only read after a crash. Never paste into an unverified/partial draft again.
     for attempt in range(3):
         page.reload(wait_until="domcontentloaded")
-        title, body = editors(page, url)
+        title, body = editors(page, url, name)
         if paragraphs(title) == [article.title] and paragraphs(body) == expected:
             return
         if attempt < 2:

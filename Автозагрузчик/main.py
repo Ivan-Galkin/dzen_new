@@ -51,7 +51,7 @@ def diagnose(root, channels, state, journal, revision):
             logging.exception("Реестр %s", cid)
         for item in items:
             try:
-                article = parse(item.path.read_text(encoding="utf-8-sig"))
+                article = parse(item.path.read_text(encoding="utf-8-sig"), keep_prompts=True)
                 row = journal.observe(cid, item, article, item.path.relative_to(root).as_posix())
                 if item.recorded or row["status"] in ("matched", "verified"):
                     status, reason = "дубли", "отметка реестра или журнала"
@@ -114,6 +114,9 @@ def main():
         for channel in channels:
             if channel["id"] in urls:
                 channel.setdefault("studio_url", urls[channel["id"]])
+            default = next((c for c in defaults["channels"] if c["id"] == channel["id"]), {})
+            if default.get("editor_channel_id"):
+                channel.setdefault("editor_channel_id", default["editor_channel_id"])
         ids = [c["id"] for c in channels]
         if len(set(ids)) != len(ids) or not all(re.fullmatch(r"[a-z0-9_-]+", cid) for cid in ids):
             raise ValueError("Идентификаторы каналов должны быть уникальными")
@@ -129,10 +132,10 @@ def main():
             revision = "локальная копия" if args.snapshot else snapshot(state, root, {c["folder"] for c in channels})
             journal = Journal(state / "publications.sqlite")
             with closing(journal.db):
+                if args.mode == "run":
+                    from daily import upload
+                    return upload(root, channels, state, journal, revision)
                 errors = diagnose(root, channels, state, journal, revision)
-        if args.mode == "run":
-            print("Создание черновиков ещё не подключено. Требуется проверка интерфейса и тест Барской воли.")
-            return 2
         return int(bool(errors))
 
 

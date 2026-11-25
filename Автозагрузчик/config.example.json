@@ -5,21 +5,24 @@
       "folder": "Рассказы",
       "name": "Свои и чужие",
       "source": "stories",
-      "profile": "main"
+      "profile": "main",
+      "studio_url": "https://dzen.ru/profile/editor/svoi_i_chuzhie"
     },
     {
       "id": "kuhnya",
       "folder": "Общая кухня",
       "name": "Общая кухня",
       "source": "stories",
-      "profile": "main"
+      "profile": "main",
+      "studio_url": "https://dzen.ru/profile/editor/soviet_kitchen"
     },
     {
       "id": "mamenka",
       "folder": "Маменька велела",
       "name": "Маменька велела",
       "source": "stories",
-      "profile": "main"
+      "profile": "main",
+      "studio_url": "https://dzen.ru/profile/editor/mamenka_stories"
     },
     {
       "id": "barskaya",
@@ -27,21 +30,24 @@
       "folder": "Барская воля",
       "name": "Барская воля",
       "source": "stories",
-      "profile": "main"
+      "profile": "main",
+      "editor_channel_id": "6ae66f59e7c94415a6b7bed0"
     },
     {
       "id": "lazurnaya",
       "folder": "Анастасия Лазурная",
       "name": "Анастасия Лазурная",
       "source": "stories",
-      "profile": "main"
+      "profile": "main",
+      "studio_url": "https://dzen.ru/profile/editor/lazurnaya"
     },
     {
       "id": "aigul",
       "folder": "Тётя Айгуль",
       "name": "Тётя Айгуль",
       "source": "queue",
-      "profile": "main"
+      "profile": "main",
+      "studio_url": "https://dzen.ru/profile/editor/aigul_stories"
     },
     {
       "id": "history",
@@ -55,7 +61,8 @@
       "folder": "Маркетинг без лапши",
       "name": "Digital Ivan. Маркетинг без лапши",
       "source": "marketing",
-      "profile": "main"
+      "profile": "main",
+      "studio_url": "https://dzen.ru/profile/editor/digital_ivan"
     }
   ]
 }
