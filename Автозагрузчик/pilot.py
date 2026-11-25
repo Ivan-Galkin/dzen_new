@@ -26,6 +26,37 @@ EDITOR = re.compile(r"https://dzen\.ru/profile/editor/id/6ae66f59e7c94415a6b7bed
 BLOCK = ".public-DraftStyleDefault-block"
 
 
+def draft_address(value):
+    return value.strip().split("#", 1)[0].split("?", 1)[0].rstrip("/")
+
+
+def select_draft(context, page):
+    prompt = "Откройте нужный черновик и вставьте сюда его адрес из строки браузера (или Enter для поиска вкладки, 0 для выхода): "
+    while True:
+        answer = input(prompt).strip()
+        if answer == "0":
+            raise ValueError("Остановлено владельцем")
+        target = draft_address(answer)
+        if answer and not EDITOR.fullmatch(target):
+            print("Нужна ссылка на редактор статьи «Барской воли» с окончанием /edit.")
+            continue
+        deadline = time.monotonic() + (0 if target else 5)
+        while True:
+            matches = [p for p in context.pages if EDITOR.fullmatch(draft_address(p.url))
+                       and (not target or draft_address(p.url) == target)]
+            if matches and (target or len(matches) == 1):
+                return matches[-1]
+            if time.monotonic() >= deadline:
+                break
+            page.wait_for_timeout(250)
+        if target:
+            page.goto(target, wait_until="domcontentloaded", timeout=60000)
+            if draft_address(page.url) != target:
+                raise ValueError("При открытии подтверждённого адреса Дзен перенаправил вкладку")
+            return page
+        print(f"Подходящих вкладок: {len(matches)}. Скопируйте ссылку открытого черновика и вставьте в консоль.")
+
+
 def editors(page, url):
     if page.url != url:
         raise ValueError("Адрес изменился. Проверьте канал, вход и адрес черновика.")
@@ -134,7 +165,7 @@ def pilot(state):
             return
         resume = row["status"] == "pending"
         url = row["draft_url"] if resume else input("Вставьте адрес открытого пустого черновика Барской воли: ").strip()
-        if not EDITOR.fullmatch(url or "") or row["digest"] != article.digest:
+        if not EDITOR.fullmatch(draft_address(url or "")) or row["digest"] != article.digest:
             raise ValueError("Не совпал адрес канала или версия материала")
         with sync_playwright() as pw:
             context = pw.chromium.launch_persistent_context(str(state / "profiles" / channel["profile"]),
@@ -157,14 +188,9 @@ def pilot(state):
                     print("Открыт список черновиков Барской воли. Откройте из списка черновик для № 58.")
                     print("Если список пуст, проверьте опубликованные и ожидающие материалы. Если № 58 нигде нет,"
                           " откройте новый пустой редактор через «+» → «Написать статью». Для выхода введите 0.")
-                    if input("Когда откроются поля редактора, нажмите Enter здесь: ").strip():
-                        raise ValueError("Восстановление остановлено владельцем")
-                    candidates = [p for p in context.pages if EDITOR.fullmatch(p.url)]
-                    if len(candidates) != 1:
-                        raise ValueError("Нужна одна открытая вкладка редактора Барской воли")
-                    page, = candidates
+                    page = select_draft(context, page)
                     page.bring_to_front()
-                    if page.url != url:
+                    if draft_address(page.url) != draft_address(url):
                         title_field, body_field = editors(page, page.url)
                         if any(paragraphs(title_field) + paragraphs(body_field)):
                             raise ValueError("Другой черновик уже содержит текст")
@@ -175,7 +201,7 @@ def pilot(state):
                         with journal.db:
                             journal.db.execute("UPDATE publications SET draft_url=? WHERE channel=? AND number=? "
                                                "AND status='pending' AND draft_url=?", (page.url, CHANNEL, NUMBER, url))
-                        url = page.url
+                    url = page.url
 
                 def reserve():
                     with journal.db:

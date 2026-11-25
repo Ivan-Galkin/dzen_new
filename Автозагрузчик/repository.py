@@ -12,7 +12,7 @@ def snapshot(state, destination, folders):
         subprocess.run(["git", "init", "--bare", str(cache)], check=True)
     command = ["git", "-C", str(cache)]
     for attempt in range(2):
-        proc = subprocess.run(command + ["fetch", "--depth=1", REMOTE, "refs/heads/master"],
+        proc = subprocess.run(command + ["fetch", "--no-auto-maintenance", "--depth=1", REMOTE, "refs/heads/master"],
                               timeout=180, check=False)
         if proc.returncode == 0:
             break
