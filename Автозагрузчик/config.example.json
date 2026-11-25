@@ -1,0 +1,60 @@
+{
+  "channels": [
+    {
+      "id": "svoi",
+      "folder": "Рассказы",
+      "name": "Свои и чужие",
+      "source": "stories",
+      "profile": "main"
+    },
+    {
+      "id": "kuhnya",
+      "folder": "Общая кухня",
+      "name": "Общая кухня",
+      "source": "stories",
+      "profile": "main"
+    },
+    {
+      "id": "mamenka",
+      "folder": "Маменька велела",
+      "name": "Маменька велела",
+      "source": "stories",
+      "profile": "main"
+    },
+    {
+      "id": "barskaya",
+      "folder": "Барская воля",
+      "name": "Барская воля",
+      "source": "stories",
+      "profile": "main"
+    },
+    {
+      "id": "lazurnaya",
+      "folder": "Анастасия Лазурная",
+      "name": "Анастасия Лазурная",
+      "source": "stories",
+      "profile": "main"
+    },
+    {
+      "id": "aigul",
+      "folder": "Тётя Айгуль",
+      "name": "Тётя Айгуль",
+      "source": "queue",
+      "profile": "main"
+    },
+    {
+      "id": "history",
+      "folder": "История",
+      "name": "Изнанка эпох",
+      "source": "history",
+      "profile": "main"
+    },
+    {
+      "id": "marketing",
+      "folder": "Маркетинг без лапши",
+      "name": "Digital Ivan. Маркетинг без лапши",
+      "source": "marketing",
+      "profile": "main"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+config.json
+*.sqlite*
+*.log
+profiles/
+preview/
+images/
+last-report.txt
