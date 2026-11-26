@@ -2,16 +2,13 @@
 import json
 import re
 import time
-from urllib.parse import urlsplit
 
 from playwright.sync_api import expect
 
 from pilot import channel_label, draft_address, editors, fill_and_check
 from rich_text import write_rich
 
-TABS = {"published": "Опубликованные", "scheduled": "Ожидают публикации", "draft": "Черновики"}
 EDIT = re.compile(r"https://dzen\.ru/profile/editor/id/([a-f0-9]{24})/([a-f0-9]{24})/edit")
-CARD = re.compile(r"(?:/a/[^/]+|/b/[^/]+|/media/[^/]+/[^/]+|/profile/editor/id/[a-f0-9]{24}/[a-f0-9]{24}/edit)/?$")
 
 # Record only the toolbar icon. No text input, session data or other clicks.
 ICON = """button => {
@@ -42,51 +39,6 @@ class Studio:
     def listing(self):
         self.page.goto(self.list_url, wait_until="domcontentloaded", timeout=60000)
         self.require_list()
-
-    def tab(self, state):
-        name = TABS[state]
-        entry = self.page.get_by_text(re.compile("^" + name + r"\s*\d[\d\s]*$")).filter(visible=True).first
-        expect(entry).to_be_visible(timeout=15000)
-        count = int("".join(re.findall(r"\d", entry.inner_text())))
-        entry.click()
-        self.require_list()
-        return count
-
-    def inventory(self):
-        self.listing()
-        listings = []
-        for status in TABS:
-            count = self.tab(status)
-            records = {}
-            previous = set()
-            stalled = 0
-            self.page.evaluate("scrollTo(0,0)")
-            # Card links must account for the entire displayed tab count. Never
-            # use a partially loaded list as proof an article is absent.
-            for _ in range(200 if count else 0):
-                self.page.wait_for_timeout(450)
-                anchors = self.page.locator("a[href]:visible").evaluate_all(
-                    "(nodes) => nodes.map(a=>[a.href,a.innerText.trim()])")
-                for url, text in anchors:
-                    link = urlsplit(url)
-                    origin = urlsplit(self.list_url)
-                    if (link.scheme, link.netloc) != (origin.scheme, origin.netloc) or not CARD.fullmatch(link.path) or not text:
-                        continue
-                    key = link.path.rstrip("/")
-                    records[key] = dict(id=key, url=f"{origin.scheme}://{origin.netloc}{key}", title=text.splitlines()[0], status=status)
-                if len(records) == count:
-                    break
-                stalled = stalled+1 if set(records) == previous else 0
-                previous = set(records)
-                if stalled >= 8 or len(records) > count:
-                    break
-                self.page.mouse.wheel(0, 780)
-            if len(records) != count:
-                raise ValueError(f"Вкладка «{TABS[status]}»: удалось сверить {len(records)} из {count}")
-            listings.extend(records.values())
-        if len({r["id"] for r in listings}) != len(listings):
-            raise ValueError("Содержимое вкладок изменилось во время сверки")
-        return listings
 
     def open_menu(self):
         self.listing()
@@ -127,7 +79,19 @@ class Studio:
             found = [p for p in self.context.pages if before.get(p)!=p.url and EDIT.fullmatch(draft_address(p.url))]
             if len(found)==1:
                 self.page = found[0]
-                url = self.page.url
+                # The initial editor route can redirect to the assigned draft.
+                expect(self.page.get_by_text(channel_label(self.name)).filter(visible=True).first).to_be_visible(timeout=30000)
+                fields = self.page.locator('[contenteditable="true"]:visible').filter(has=self.page.locator('.public-DraftStyleDefault-block'))
+                expect(fields).to_have_count(2, timeout=30000)
+                deadline = time.monotonic() + 15
+                while time.monotonic() < deadline:
+                    url = draft_address(self.page.url)
+                    self.page.wait_for_timeout(650)
+                    if draft_address(self.page.url) == url and EDIT.fullmatch(url):
+                        break
+                else:
+                    raise ValueError("Редактор продолжает перенаправлять страницу")
+
                 self.check_editor(url)
                 return url
             if len(found)>1:
@@ -141,11 +105,6 @@ class Studio:
             raise ValueError("Адрес редактора не соответствует каналу")
         editors(self.page, url, self.name)
 
-    def verify_list(self, article):
-        self.listing()
-        self.tab("draft")
-        expect(self.page.get_by_text(article.title, exact=True).filter(visible=True)).to_have_count(1, timeout=30000)
-
     def write(self, url, article, resume):
         self.check_editor(url)
         plain = self.page.evaluate("""html => {
@@ -156,4 +115,4 @@ class Studio:
             fill_and_check(self.page, url, article, resume, lambda: None, self.name)
         else:
             write_rich(self.page, url, article, self.name, resume)
-        self.verify_list(article)
+

@@ -62,7 +62,7 @@ def channel_label(name):
 
 
 def editors(page, url, name=NAME):
-    if page.url != url:
+    if draft_address(page.url) != draft_address(url):
         raise ValueError("Адрес изменился. Проверьте канал, вход и адрес черновика.")
     channel = page.get_by_text(channel_label(name)).filter(visible=True).first
     try:
@@ -70,7 +70,7 @@ def editors(page, url, name=NAME):
     except AssertionError:
         input(f"Название канала пока не видно. Проверьте вход и загрузку страницы в браузере. Когда увидите «{name}», нажмите Enter здесь: ")
         expect(channel).to_be_visible(timeout=30000)
-    if page.url != url:
+    if draft_address(page.url) != draft_address(url):
         raise ValueError("После загрузки изменился адрес черновика")
     fields = page.locator('[contenteditable="true"]:visible').filter(has=page.locator(BLOCK))
     expect(fields).to_have_count(2, timeout=30000)
@@ -129,7 +129,7 @@ def fill_and_check(page, url, article, resume, reserve, name=NAME):
         # This pilot accepts plain paragraphs only (validated above). Use native
         # editor input and verify each new block before advancing to the next.
         for index, paragraph in enumerate(expected):
-            if page.url != url or not body.evaluate("el => el.contains(document.activeElement)"):
+            if draft_address(page.url) != draft_address(url) or not body.evaluate("el => el.contains(document.activeElement)"):
                 raise ValueError("Редактор потерял фокус. Ввод остановлен.")
             if index:
                 page.keyboard.press("Enter")

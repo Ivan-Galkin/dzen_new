@@ -55,13 +55,18 @@ def diagnose(root, channels, state, journal, revision):
                 row = journal.observe(cid, item, article, item.path.relative_to(root).as_posix())
                 if item.recorded or row["status"] in ("matched", "verified"):
                     status, reason = "дубли", "отметка реестра или журнала"
+                elif item.hold:
+                    status, reason = "проверить", item.hold
+                elif row["status"] in ("approved", "pending"):
+                    status, reason = "новые", "в очереди на создание или повторную попытку"
                 else:
-                    status = "проверить"
-                    reason = item.hold or "требуется сверка со Студией"
-                    if item.title and normalize(article.title) != normalize(item.title):
-                        reason = "расхождение заголовка с реестром"
-                    if row["status"] == "pending":
-                        reason = "прерванная запись, проверить существующий черновик"
+                    initialized = journal.db.execute("SELECT 1 FROM sqlite_master WHERE name='daily_channels'").fetchone()
+                    initialized = initialized and journal.db.execute("SELECT 1 FROM daily_channels WHERE channel=?", (cid,)).fetchone()
+                    historical = initialized and journal.db.execute("SELECT 1 FROM daily_sources WHERE channel=? AND number=? AND historical=1", (cid,item.number)).fetchone()
+                    if initialized and not historical:
+                        status, reason = "новые", "готовый номер появился после первого запуска"
+                    else:
+                        status, reason = "архив", "номер исходного снимка"
                 lines.append(f"{item.number}. {article.title} — {status}: {reason}")
                 counts[status] += 1
                 if row["draft_url"]:
@@ -81,7 +86,7 @@ def diagnose(root, channels, state, journal, revision):
                 counts["ошибки"] += 1
                 lines.append(f"{item.number}. {item.path.name} — {exc}")
                 logging.exception("Материал %s/%s", cid, item.number)
-        summary = (f"{channel['name']} — в источнике {len(items)}, подтверждено новых 0, "
+        summary = (f"{channel['name']} — в источнике {len(items)}, новых в очереди {counts['новые']}, "
                    f"создано 0, дубли {counts['дубли']}, проверить {counts['проверить']}, ошибки {counts['ошибки']}")
         report.append(summary)
         if channel.get("studio_url"):

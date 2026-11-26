@@ -37,6 +37,8 @@ EDITOR = """<strong>Барская воля</strong><p>Сохранено мен
 <div contenteditable=true><div class=public-DraftStyleDefault-block><br></div></div>
 <div contenteditable=true><div class=public-DraftStyleDefault-block><br></div></div>
 <script>
+// Studio may add query parameters after the editor has mounted.
+setTimeout(()=>history.replaceState(null,'',location.pathname+'?editor=ready'),150);
 const [title,body]=document.querySelectorAll('[contenteditable]');
 const saved=JSON.parse(localStorage.items),item=saved.find(i=>location.pathname.includes(i.id+'/edit'));
 if(item.titleHtml)title.innerHTML=item.titleHtml;
@@ -62,7 +64,7 @@ class DailyTest(unittest.TestCase):
             root = Path(directory)
             base = root/"Барская воля"
             base.mkdir()
-            (base/filename).write_text(raw,encoding="utf-8")
+            
             (base/filename.replace("59","57")).write_text("Архив\n\nСтарый текст",encoding="utf-8")
             journal=Journal(root/"journal.sqlite")
             channel=dict(id="barskaya", name="Барская воля", folder="Барская воля", source="stories",
@@ -70,7 +72,7 @@ class DailyTest(unittest.TestCase):
             browser=pw.chromium.launch()
             ctx=browser.new_context()
             def route(r):
-                r.fulfill(content_type="text/html; charset=utf-8",body=EDITOR if r.request.url.endswith("/edit") else STUDIO)
+                r.fulfill(content_type="text/html; charset=utf-8",body=EDITOR if r.request.url.split("?")[0].endswith("/edit") else STUDIO)
             ctx.route("**/*",route)
             from studio import Studio
             class OfflineStudio(Studio):
@@ -86,9 +88,11 @@ class DailyTest(unittest.TestCase):
                 with patch("daily.Studio",OfflineStudio), patch("studio.EDIT",re.compile(ORIGIN+r"/profile/editor/id/([a-f0-9]{24})/([a-f0-9]{24})/edit")):
                     def run():
                         return run_channel(root,root,journal,channel,ctx,[])["создано"]
+                    self.assertEqual(run(),0)
+                    (base/filename).write_text(raw,encoding="utf-8")
                     self.assertEqual(run(),1)
                     self.assertEqual(run(),0)
-                    self.assertEqual(journal.row("barskaya","57")["status"],"review")
+                    self.assertEqual(journal.row("barskaya","57"),None)
                     self.assertEqual(journal.row("barskaya","59")["status"],"verified")
                     stored=ctx.pages[-1].evaluate("JSON.parse(localStorage.items)")
                     source=parse(raw)
@@ -98,10 +102,10 @@ class DailyTest(unittest.TestCase):
                             self.assertIn(line,actual)
                         if image["after"]!="После заголовка":
                             self.assertLess(actual.index(image["after"]),actual.index(image["prompt"].splitlines()[0]))
-                    # A previous attempt lost the editor URL before saving it locally.
-                    with journal.db:
-                        journal.db.execute("UPDATE publications SET status='pending',draft_url=NULL WHERE number='59'")
                     (base/filename.replace("59","60")).write_text("Другой заголовок\n\nНовый абзац.",encoding="utf-8")
+                    # Emulate an earlier attempt that stopped before capturing the URL.
+                    with journal.db:
+                        journal.db.execute("INSERT INTO publications SELECT channel,'60',kind,path,title,digest,'pending',NULL,NULL,NULL FROM publications WHERE number='59'")
                     self.assertEqual(run(),1)
                     self.assertEqual(run(),0)
                     self.assertEqual(len(ctx.pages[-1].evaluate("JSON.parse(localStorage.items)")),2)

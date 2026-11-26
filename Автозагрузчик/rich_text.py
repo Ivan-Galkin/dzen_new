@@ -51,7 +51,7 @@ def content_matches(body, expected):
 
 
 def write_rich(page, url, article, name, resume):
-    from pilot import editors, paragraphs, click_field
+    from pilot import editors, paragraphs, click_field, draft_address
     title, body = editors(page, url, name)
     expected = expected_signature(body, article)
     if not expected:
@@ -65,7 +65,7 @@ def write_rich(page, url, article, name, resume):
             page.keyboard.insert_text(article.title)
         expect(title).to_have_text(article.title)
         click_field(page,url,1,name)
-        if page.url!=url or any(paragraphs(body)):
+        if draft_address(page.url)!=draft_address(url) or any(paragraphs(body)):
             raise ValueError("Страница изменилась перед вставкой")
         # A native paste runs the editor's actual HTML importer. The synthetic
         # paste event was ignored by the live editor during the pilot.
