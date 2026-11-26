@@ -64,33 +64,44 @@ def run_channel(root, state, journal, channel, context, lines):
             if channel["source"] == "queue":
                 break
     pending = journal.db.execute("SELECT * FROM publications WHERE channel=? AND status='pending'",(cid,)).fetchall()
-    if len(pending)>1:
-        raise ValueError("Несколько незавершённых черновиков. Нужна сверка.")
     studio = None
+    current = None
+    held = set()
     if pending:
         studio = Studio(context, channel, state)
-        row = pending[0]
-        pair = next(((i,a) for i,a in entries if i.number==row["number"] and a.digest==row["digest"]), None)
-        if not row["draft_url"] or not pair:
-            raise ValueError(f"Требуется сверка прерванной записи № {row['number']}. Повтор заблокирован.")
         current = studio.inventory()
-        saved_address = row["draft_url"].split("?")[0].split("#")[0].rstrip("/")
-        if not any(entry["status"] == "draft" and entry["url"] == saved_address for entry in current):
-            raise ValueError(f"№ {row['number']}: сохранённый адрес не подтверждён во вкладке черновиков.")
-        studio.page.goto(row["draft_url"], wait_until="domcontentloaded")
-        finish(journal, studio, cid, *pair, row["draft_url"], True)
-        lines.append(f"Подтверждён черновик № {row['number']}: {row['draft_url']}")
+    for row in pending:
+        number = row["number"]
+        pair = next(((i,a) for i,a in entries if i.number==number and a.digest==row["digest"]), None)
+        title = normalize(row["title"])
+        matches = [e for e in current if normalize(e["title"]) == title]
+        if len(matches) == 1 and matches[0]["status"] in ("published", "scheduled"):
+            with journal.db:
+                journal.db.execute("""UPDATE publications SET status='matched', draft_url=?, error=NULL
+                                      WHERE channel=? AND number=? AND status='pending'""",
+                                   (matches[0]["url"], cid, number))
+            lines.append(f"№ {number} уже есть в Студии: {matches[0]['url']}")
+            continue
+        url = row["draft_url"]
+        address = url.split("?")[0].split("#")[0].rstrip("/") if url else None
+        if pair and address and any(e["status"]=="draft" and e["url"]==address for e in current):
+            studio.page.goto(url, wait_until="domcontentloaded")
+            finish(journal, studio, cid, *pair, url, True)
+            lines.append(f"Подтверждён черновик № {number}: {url}")
+        else:
+            held.add(number)
+            lines.append(f"№ {number}: незавершённая запись, повтор пропущен до сверки.")
     baseline = journal.db.execute("SELECT 1 FROM baselines WHERE channel=?", (cid,)).fetchone()
     todo = [(i,a) for i,a in entries if not i.recorded and not i.hold and (i.number not in old or i.number in explicit)
             and journal.row(cid,i.number)["status"] in ("review","approved")]
-    if baseline and not todo:
+    if baseline and not todo and current is None:
         counts["проверить"] = len(entries) - counts["дубли"] - len(pending)
         lines.append("Новых материалов для загрузки нет.")
         return counts
     if studio is None:
         studio = Studio(context, channel, state)
     try:
-        inventory = studio.inventory()
+        inventory = current if current is not None else studio.inventory()
     except (BrowserError, ValueError, AssertionError) as exc:
         # Only the owner-approved pilot follow-up can use manual first reconciliation.
         if cid != "barskaya" or not any(i.number=="59" for i,a in todo):
@@ -103,14 +114,14 @@ def run_channel(root, state, journal, channel, context, lines):
         inventory = None
     if inventory is not None:
         approvals = [(i.number,a.digest) for i,a in entries if i.number in explicit]
-        prepare(journal,cid,entries,old,inventory,approvals)
+        prepare(journal,cid,entries,old,inventory,approvals, tracked_sources=True)
         counts["дубли"] = sum(i.recorded or journal.row(cid,i.number)["status"] in ("matched","verified")
                               for i,a in entries)
     for item, article in entries:
         row = journal.row(cid,item.number)
         if item.recorded or row["status"] in ("verified","matched"):
             continue
-        manual = inventory is None and cid=="barskaya" and item.number=="59"
+        manual = item.number not in held and inventory is None and cid=="barskaya" and item.number=="59"
         approved = row["status"]=="approved" and inventory is not None
         mismatch = item.title and normalize(item.title)!=normalize(article.title)
         if not (approved or manual) or item.hold or mismatch or (manual and article.title!="Снохин долг"):

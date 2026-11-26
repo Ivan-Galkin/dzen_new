@@ -98,6 +98,9 @@ class DailyTest(unittest.TestCase):
                             self.assertIn(line,actual)
                         if image["after"]!="После заголовка":
                             self.assertLess(actual.index(image["after"]),actual.index(image["prompt"].splitlines()[0]))
+                    # A previous attempt lost the editor URL before saving it locally.
+                    with journal.db:
+                        journal.db.execute("UPDATE publications SET status='pending',draft_url=NULL WHERE number='59'")
                     (base/filename.replace("59","60")).write_text("Другой заголовок\n\nНовый абзац.",encoding="utf-8")
                     self.assertEqual(run(),1)
                     self.assertEqual(run(),0)

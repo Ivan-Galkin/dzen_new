@@ -5,7 +5,7 @@ from difflib import SequenceMatcher
 from storage import normalize
 
 
-def prepare(journal, channel, entries, observed, inventory, approvals=()):
+def prepare(journal, channel, entries, observed, inventory, approvals=(), *, tracked_sources=False):
     """Entries are scanned before the initial complete inventory. Approval includes the digest.
     observed is the set of numbers already in SQLite before this scan.
     inventory must include all three lists, fully paginated and channel-verified.
@@ -22,7 +22,7 @@ def prepare(journal, channel, entries, observed, inventory, approvals=()):
             continue
         decision = (item.number, article.digest) in approvals
         similar = any(SequenceMatcher(None, title, other).ratio() >= .84 for other in remote)
-        new = bool(had_baseline and item.number not in observed)
+        new = bool((had_baseline or tracked_sources) and item.number not in observed)
         safe = (not item.hold and not item.recorded and counts[title] == 1 and title not in remote
                 and row["digest"] == article.digest and (not item.title or normalize(item.title) == title))
         prior = journal.db.execute("""SELECT 1 FROM publications WHERE channel=? AND number<>?
