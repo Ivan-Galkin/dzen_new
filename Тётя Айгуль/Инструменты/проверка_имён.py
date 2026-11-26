@@ -6,9 +6,9 @@
 import sys, glob, re
 from публикации import готовые_публикации
 
-files = glob.glob('Рассказ-*.md') + list(готовые_публикации('.', 'рассказ'))
+files = glob.glob('Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md') + list(готовые_публикации('.', 'рассказ'))
 def num(f):
-    return int(re.match(r'(?:Рассказ|Публикация)-(\d+)', f).group(1))
+    return int(re.match(r'Рассказ-(\d+)', f).group(1))
 last = sorted({num(f) for f in files})[-15:]
 recent = [f for f in files if num(f) in last]
 print('Последние рассказы:', ', '.join(map(str, last)))

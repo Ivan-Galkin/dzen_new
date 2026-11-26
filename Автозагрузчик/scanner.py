@@ -39,7 +39,7 @@ def scan(root, channel):
             if status.casefold() != "готово":
                 break
             legacy_name = number <= 44 and re.fullmatch(r"(Рассказ|Рецепт|Кухни)-\d+_ГОТОВО-К-ВСТАВКЕ\.md", file)
-            unified_name = file == f"Публикация-{number:02d}_ГОТОВО-К-ВСТАВКЕ.md"
+            unified_name = number >= 45 and file == f"Рассказ-{number:02d}.md"
             if not (legacy_name or unified_name):
                 raise ValueError(f"Неизвестный файл публикации {n}")
             items.append(Item(n, kind.split()[0], base / file, title, recorded=bool(out)))

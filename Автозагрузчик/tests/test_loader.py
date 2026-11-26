@@ -111,19 +111,19 @@ class RepositoryFormats(unittest.TestCase):
             ]
             legacy.insert(41, "| 42 | рецепт 11 | резерв снят | | | (не написано) |")
             future = [
-                "| 45 | рецепт | готово | | Рецепт | Публикация-45_ГОТОВО-К-ВСТАВКЕ.md |",
-                "| 46 | кухни мира | готово | | История блюда | Публикация-46_ГОТОВО-К-ВСТАВКЕ.md |",
+                "| 45 | рецепт | готово | | Рецепт | Рассказ-45.md |",
+                "| 46 | кухни мира | готово | | История блюда | Рассказ-46.md |",
                 "| 47 | рассказ | в очереди | | | (не написано) |",
-                "| 48 | рассказ | готово | | Рассказ | Публикация-48_ГОТОВО-К-ВСТАВКЕ.md |",
+                "| 48 | рассказ | готово | | Рассказ | Рассказ-48.md |",
             ]
             channel = {"folder": ".", "source": "queue"}
             queue.write_text("\n".join(legacy + future), encoding="utf-8")
             items = scan(root, channel)
             self.assertEqual([x.number for x in items[-4:]], ["43", "44", "45", "46"])
-            self.assertEqual(items[-2].path.name, "Публикация-45_ГОТОВО-К-ВСТАВКЕ.md")
+            self.assertEqual(items[-2].path.name, "Рассказ-45.md")
             self.assertEqual([x.kind for x in items[-2:]], ["рецепт", "кухни"])
 
-            future[0] = future[0].replace("Публикация-45", "Публикация-46")
+            future[0] = future[0].replace("Рассказ-45.md", "Рассказ-46.md")
             queue.write_text("\n".join(legacy + future), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "Неизвестный файл публикации 45"):
                 scan(root, channel)

@@ -171,7 +171,7 @@ import os, glob
 from публикации import готовые_публикации
 
 def _num(fn):
-    m = re.match(r'(?:Рассказ|Публикация)-(\d+)(?:-(\d))?_', os.path.basename(fn))
+    m = re.match(r'Рассказ-(\d+)(?:-(\d))?(?:_|\.md$)', os.path.basename(fn))
     return (int(m.group(1)), int(m.group(2) or 0)) if m else None
 
 def _stories(folder):
