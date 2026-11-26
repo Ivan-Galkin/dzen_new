@@ -36,9 +36,11 @@ def scan(root, channel):
             previous = number
             if status.casefold() == "резерв снят" and file == "(не написано)":
                 continue
+            if status.casefold() == "резерв снят":
+                continue
             if status.casefold() != "готово":
                 break
-            legacy_name = number <= 44 and re.fullmatch(r"(Рассказ|Рецепт|Кухни)-\d+_ГОТОВО-К-ВСТАВКЕ\.md", file)
+            legacy_name = number <= 44 and re.fullmatch(r"(Рассказ|Рецепт|Кухни)-\d+(?:_ГОТОВО-К-ВСТАВКЕ)?\.md", file)
             unified_name = number >= 45 and file == f"Рассказ-{number:02d}.md"
             if not (legacy_name or unified_name):
                 raise ValueError(f"Неизвестный файл публикации {n}")
