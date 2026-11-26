@@ -168,9 +168,16 @@ check(t.count('```') == 2, 'Промтов к картинкам', t.count('```'
 
 # Против шаблона (с 26.10.2026): строка ЭПИЛОГ (с 31.10.2026 не чаще одного из трёх), зачин «Было это…», финал-реликвия в сравнении с тремя прошлыми рассказами папки
 import os, glob
+from публикации import готовые_публикации
+
 def _num(fn):
-    m = re.search(r'Рассказ-(\d+)(?:-(\d))?_', os.path.basename(fn))
+    m = re.match(r'(?:Рассказ|Публикация)-(\d+)(?:-(\d))?_', os.path.basename(fn))
     return (int(m.group(1)), int(m.group(2) or 0)) if m else None
+
+def _stories(folder):
+    yield from glob.glob(os.path.join(folder, 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md'))
+    yield from готовые_публикации(folder, 'рассказ')
+
 def _paras(txt):
     x = re.sub(r'\*\*\[.*?\]\*\*', '', txt)
     x = re.sub(r'```.*?```', '', x, flags=re.S)
@@ -185,7 +192,7 @@ _epi = lambda txt: 'ЭПИЛОГ' in [l.strip().strip('*').strip() for l in txt.
 if cur:
     folder = os.path.dirname(os.path.abspath(path))
     files = {}
-    for f in glob.glob(os.path.join(folder, 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md')):
+    for f in _stories(folder):
         n = _num(f)
         if n and n[0] < cur[0]:
             files.setdefault(n[0], {})[n[1]] = f
@@ -379,7 +386,9 @@ _me = os.path.abspath(path)
 _mynum = _num(path)
 _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _dups = []
-for _f in glob.glob(os.path.join(_root, '*', 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md')):
+_all_stories = glob.glob(os.path.join(_root, '*', 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md'))
+_all_stories.extend(готовые_публикации(os.path.dirname(os.path.dirname(__file__)), 'рассказ'))
+for _f in _all_stories:
     _f = os.path.abspath(_f)
     if _f == _me:
         continue
@@ -417,7 +426,7 @@ _TDEF = re.compile(r'хром|(^|\s)нем(ая|ой|ую|ого|ые)(\s|$)|г�
 def _tdef(s): return bool(_TDEF.search(s.lower().replace('ё', 'е')))
 if _mynum:
     _prevt = {}
-    for _f in glob.glob(os.path.join(os.path.dirname(_me), 'Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md')):
+    for _f in _stories(os.path.dirname(_me)):
         _n = _num(_f)
         if _n and _n[0] < _mynum[0] and (_n[0] not in _prevt or _n[1] < _prevt[_n[0]][0]):
             _prevt[_n[0]] = (_n[1], _ttitle(_f))

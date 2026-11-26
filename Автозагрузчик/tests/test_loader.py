@@ -101,6 +101,33 @@ class Safety(unittest.TestCase):
 
 
 class RepositoryFormats(unittest.TestCase):
+    def test_aygul_numbering_transition(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            queue = root / "ВЫКЛАДКА.md"
+            legacy = [
+                f"| {n} | рассказ {n:02d} | готово | | Заголовок | Рассказ-{n:02d}_ГОТОВО-К-ВСТАВКЕ.md |"
+                for n in range(1, 45) if n != 42
+            ]
+            legacy.insert(41, "| 42 | рецепт 11 | резерв снят | | | (не написано) |")
+            future = [
+                "| 45 | рецепт | готово | | Рецепт | Публикация-45_ГОТОВО-К-ВСТАВКЕ.md |",
+                "| 46 | кухни мира | готово | | История блюда | Публикация-46_ГОТОВО-К-ВСТАВКЕ.md |",
+                "| 47 | рассказ | в очереди | | | (не написано) |",
+                "| 48 | рассказ | готово | | Рассказ | Публикация-48_ГОТОВО-К-ВСТАВКЕ.md |",
+            ]
+            channel = {"folder": ".", "source": "queue"}
+            queue.write_text("\n".join(legacy + future), encoding="utf-8")
+            items = scan(root, channel)
+            self.assertEqual([x.number for x in items[-4:]], ["43", "44", "45", "46"])
+            self.assertEqual(items[-2].path.name, "Публикация-45_ГОТОВО-К-ВСТАВКЕ.md")
+            self.assertEqual([x.kind for x in items[-2:]], ["рецепт", "кухни"])
+
+            future[0] = future[0].replace("Публикация-45", "Публикация-46")
+            queue.write_text("\n".join(legacy + future), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Неизвестный файл публикации 45"):
+                scan(root, channel)
+
     def test_channels_from_actual_repository(self):
         module = Path(__file__).resolve().parents[1]
         root = Path(os.environ.get("DZEN_TEST_SOURCE", module.parent))

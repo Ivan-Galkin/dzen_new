@@ -30,12 +30,17 @@ def scan(root, channel):
         previous = 0
         for cells in rows(base / "ВЫКЛАДКА.md"):
             n, kind, status, out, title, file = cells
-            if int(n) != previous + 1:
+            number = int(n)
+            if number != previous + 1:
                 raise ValueError("Нарушена сквозная нумерация очереди")
-            previous = int(n)
+            previous = number
+            if status.casefold() == "резерв снят" and file == "(не написано)":
+                continue
             if status.casefold() != "готово":
                 break
-            if not re.fullmatch(r"(Рассказ|Рецепт|Кухни)-\d+_ГОТОВО-К-ВСТАВКЕ\.md", file):
+            legacy_name = number <= 44 and re.fullmatch(r"(Рассказ|Рецепт|Кухни)-\d+_ГОТОВО-К-ВСТАВКЕ\.md", file)
+            unified_name = file == f"Публикация-{number:02d}_ГОТОВО-К-ВСТАВКЕ.md"
+            if not (legacy_name or unified_name):
                 raise ValueError(f"Неизвестный файл публикации {n}")
             items.append(Item(n, kind.split()[0], base / file, title, recorded=bool(out)))
     elif source == "marketing":

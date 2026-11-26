@@ -4,6 +4,7 @@
 #   python3 Инструменты/проверка_рецепта.py Кухни-01_ГОТОВО-К-ВСТАВКЕ.md --вид кухни
 # Виды: блюдо (по умолчанию), тот-самый, хитрости, стол, кухни. --пара: рецепт в паре с рассказом, нужен блок ссылки на рассказ.
 import re, sys, os, glob
+from публикации import готовые_публикации
 
 if len(sys.argv) < 2:
     print('Укажите файл'); sys.exit(1)
@@ -159,16 +160,21 @@ def _tnorm(s):
 _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _me = os.path.abspath(path)
 dups = []
-for pat in ('Рассказ-*_ГОТОВО-К-ВСТАВКЕ.md', 'Рецепт-*_ГОТОВО-К-ВСТАВКЕ.md', 'Кухни-*_ГОТОВО-К-ВСТАВКЕ.md'):
-    for f in glob.glob(os.path.join(_root, '*', pat)):
-        if os.path.abspath(f) == _me:
-            continue
-        try:
-            other = open(f, encoding='utf-8').readline()
-        except OSError:
-            continue
-        if _tnorm(other) == _tnorm(title):
-            dups.append(f'{os.path.basename(os.path.dirname(f))}, {os.path.basename(f).split("_")[0]}')
+files = [
+    file
+    for prefix in ('Рассказ', 'Рецепт', 'Кухни')
+    for file in glob.glob(os.path.join(_root, '*', f'{prefix}-*_ГОТОВО-К-ВСТАВКЕ.md'))
+]
+files.extend(готовые_публикации(os.path.dirname(os.path.dirname(__file__))))
+for f in files:
+    if os.path.abspath(f) == _me:
+        continue
+    try:
+        other = open(f, encoding='utf-8').readline()
+    except OSError:
+        continue
+    if _tnorm(other) == _tnorm(title):
+        dups.append(f'{os.path.basename(os.path.dirname(f))}, {os.path.basename(f).split("_")[0]}')
 check(not dups, 'Заголовок уже был', 'нет' if not dups else '; '.join(dups), 'дословно не повторять ни в одном нашем канале')
 
 print()

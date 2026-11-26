@@ -4,9 +4,11 @@
 # Запуск из папки канала ДО сохранения нового рассказа:
 #   python3 Инструменты/проверка_имён.py Нина Степан
 import sys, glob, re
-files = glob.glob('Рассказ-*.md')
+from публикации import готовые_публикации
+
+files = glob.glob('Рассказ-*.md') + list(готовые_публикации('.', 'рассказ'))
 def num(f):
-    return int(re.match(r'Рассказ-(\d+)', f).group(1))
+    return int(re.match(r'(?:Рассказ|Публикация)-(\d+)', f).group(1))
 last = sorted({num(f) for f in files})[-15:]
 recent = [f for f in files if num(f) in last]
 print('Последние рассказы:', ', '.join(map(str, last)))
