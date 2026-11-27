@@ -9,6 +9,7 @@ from playwright.sync_api import sync_playwright
 from parser import parse
 from scanner import scan
 from studio import Studio
+from rich_text import DraftContentMismatch
 
 
 def remember_queue(db, cid, items):
@@ -47,6 +48,10 @@ def run_channel(root, state, journal, channel, context, lines):
         if item.recorded or status in ("verified", "matched"):
             counts["дубли"] += 1
             continue
+        if status == "draft_review":
+            counts["проверить"] += 1
+            lines.append(f"№ {item.number}: проверьте существующий черновик {row['draft_url']}")
+            continue
         if item.number in old and status not in ("approved", "pending"):
             continue
         if item.hold:
@@ -81,6 +86,12 @@ def run_channel(root, state, journal, channel, context, lines):
             counts["создано"] += 1
             lines.append(f"Сохранён № {item.number} «{article.title}»: {url}")
             print(lines[-1], flush=True)
+        except DraftContentMismatch as exc:
+            with journal.db:
+                journal.db.execute("UPDATE publications SET status='draft_review',error=? WHERE channel=? AND number=?",
+                                   (str(exc), cid, item.number))
+            counts["проверить"] += 1
+            lines.append(f"№ {item.number}: {exc}. {url}")
         except Exception as exc:
             counts["ошибки"] += 1
             lines.append(f"№ {item.number}: {exc}")

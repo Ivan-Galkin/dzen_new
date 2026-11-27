@@ -1,3 +1,7 @@
+class DraftContentMismatch(ValueError):
+    pass
+
+
 """Read back text and semantic formatting from the source and a Draft.js editing surface."""
 import re
 import time
@@ -86,7 +90,7 @@ def write_rich(page, url, article, name, resume):
                 raise ValueError("Редактор изменил текст или форматирование. Черновик оставлен на проверку.")
             page.wait_for_timeout(200)
     elif not resume or current != [article.title] or not content_matches(body,expected):
-        raise ValueError("Содержимое черновика требует сверки")
+        raise DraftContentMismatch("Содержимое черновика требует сверки")
     expect(page.get_by_text(re.compile(r"^Сохранено(?:\s|$)")).filter(visible=True).first).to_be_visible(timeout=45000)
     page.wait_for_timeout(2500)
     page.reload(wait_until="domcontentloaded")
